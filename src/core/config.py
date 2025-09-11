@@ -7,7 +7,8 @@ Disclaimer: This file includes AI-assisted content (GPT-5); reviewed and approve
 """
 
 from functools import lru_cache
-from pydantic import BaseSettings, Field
+from pydantic import Field
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -26,9 +27,7 @@ class Settings(BaseSettings):
     cache_backend: str = Field("memory", env="CACHE_BACKEND")
     database_url: str = Field("sqlite:///./weekender.sqlite3", env="DATABASE_URL")
 
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
 
 @lru_cache(maxsize=1)

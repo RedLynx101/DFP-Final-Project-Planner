@@ -7,7 +7,7 @@ Disclaimer: This file includes AI-assisted content (GPT-5); reviewed and approve
 """
 
 from datetime import datetime, time
-from typing import List, Optional
+from typing import Dict, List, Optional
 from pydantic import BaseModel, Field
 
 
@@ -15,6 +15,9 @@ class Preference(BaseModel):
     budget_level: str = Field("medium", description="low|medium|high")
     interests: List[str] = Field(default_factory=lambda: ["food", "museums"])
     mobility: str = Field("walk", description="walk|transit|drive")
+    environment: str = Field(
+        "either", description="indoor|outdoor|either"
+    )
 
 
 class Activity(BaseModel):
@@ -25,6 +28,9 @@ class Activity(BaseModel):
     end_time: Optional[time] = None
     cost_estimate: Optional[float] = None
     notes: Optional[str] = None
+    external_url: Optional[str] = None
+    source: Optional[str] = Field(None, description="source identifier e.g. visitpgh|yelp")
+    environment: Optional[str] = Field(None, description="indoor|outdoor|unknown")
 
 
 class DayPlan(BaseModel):
@@ -43,6 +49,24 @@ class ItineraryResponse(BaseModel):
     title: str
     days: List[DayPlan]
     summary: Optional[str] = None
+    warnings: List[str] = Field(default_factory=list)
+    sources: Dict[str, int] = Field(default_factory=dict, description="counts of items by source")
+
+
+class EventItem(BaseModel):
+    title: str
+    details: Optional[str] = None
+    url: Optional[str] = None
+    date_hint: Optional[str] = Field(
+        None, description="free-text date/day info scraped from the page"
+    )
+    environment: Optional[str] = Field(None, description="indoor|outdoor|unknown")
+
+
+class ItineraryOptionsResponse(BaseModel):
+    options: List[ItineraryResponse]
+    warnings: List[str] = Field(default_factory=list)
+    used_sources: Dict[str, int] = Field(default_factory=dict)
 
 
 class YelpSearchResponse(BaseModel):

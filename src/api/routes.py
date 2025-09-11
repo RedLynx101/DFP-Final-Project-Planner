@@ -7,8 +7,8 @@ Disclaimer: This file includes AI-assisted content (GPT-5); reviewed and approve
 """
 
 from fastapi import APIRouter, HTTPException
-from ..models.itinerary import ItineraryRequest, ItineraryResponse
-from ..services.planner import build_itinerary
+from ..models.itinerary import ItineraryRequest, ItineraryResponse, ItineraryOptionsResponse
+from ..services.planner import build_itinerary, build_itinerary_options
 from ..services.yelp_client import search_food
 from ..services.visitpgh_scraper import fetch_this_week_events
 
@@ -41,4 +41,11 @@ def events_this_week() -> dict:
     except Exception as exc:  # pragma: no cover
         raise HTTPException(status_code=502, detail=str(exc))
 
+
+@router.post("/itinerary/options", response_model=ItineraryOptionsResponse)
+def create_itinerary_options(payload: ItineraryRequest) -> ItineraryOptionsResponse:
+    try:
+        return build_itinerary_options(payload)
+    except Exception as exc:  # pragma: no cover
+        raise HTTPException(status_code=500, detail=str(exc))
 
