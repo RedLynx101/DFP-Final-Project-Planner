@@ -45,3 +45,9 @@ class ItineraryResponse(BaseModel):
     summary: Optional[str] = None
 
 
+class YelpSearchResponse(BaseModel):
+    query: str
+    location: str
+    results: List[dict]
+
+

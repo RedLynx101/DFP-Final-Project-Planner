@@ -21,6 +21,7 @@ class Settings(BaseSettings):
     maps_api_key: str = Field("changeme-maps-key", env="MAPS_API_KEY")
     weather_api_key: str = Field("changeme-weather-key", env="WEATHER_API_KEY")
     events_api_key: str = Field("changeme-events-key", env="EVENTS_API_KEY")
+    yelp_api_key: str = Field("changeme-yelp-key", env="YELP_API_KEY")
 
     cache_backend: str = Field("memory", env="CACHE_BACKEND")
     database_url: str = Field("sqlite:///./weekender.sqlite3", env="DATABASE_URL")

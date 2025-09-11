@@ -6,9 +6,11 @@ Summary: FastAPI routes for health and itinerary preview.
 Disclaimer: This file includes AI-assisted content (GPT-5); reviewed and approved by the Purple Turtles team.
 """
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from ..models.itinerary import ItineraryRequest, ItineraryResponse
 from ..services.planner import build_itinerary
+from ..services.yelp_client import search_food
+from ..services.visitpgh_scraper import fetch_this_week_events
 
 
 router = APIRouter()
@@ -22,5 +24,21 @@ def health() -> dict:
 @router.post("/itinerary", response_model=ItineraryResponse)
 def create_itinerary(payload: ItineraryRequest) -> ItineraryResponse:
     return build_itinerary(payload)
+
+
+@router.get("/food/search")
+def food_search(query: str, location: str = "Pittsburgh, PA", limit: int = 5, price: str | None = None) -> dict:
+    try:
+        return search_food(query=query, location=location, limit=limit, price=price)
+    except Exception as exc:  # pragma: no cover - network failures translate to 502
+        raise HTTPException(status_code=502, detail=str(exc))
+
+
+@router.get("/events/this-week")
+def events_this_week() -> dict:
+    try:
+        return fetch_this_week_events()
+    except Exception as exc:  # pragma: no cover
+        raise HTTPException(status_code=502, detail=str(exc))
 
 

@@ -31,6 +31,11 @@ uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
 
 Open http://localhost:8000/docs for Swagger UI.
 
+## New Endpoints
+
+- `GET /api/events/this-week`: Scrapes VisitPittsburgh "This Week" for event highlights.
+- `GET /api/food/search?query=ramen&location=Pittsburgh%2C%20PA&limit=5`: Proxies Yelp Fusion search for restaurants.
+
 ## Project Structure
 
 ```
@@ -62,6 +67,7 @@ Configure `.env` using `.env.example`. Keep real secrets out of version control.
 - MAPS_API_KEY (e.g., Google, Mapbox, or OpenRouteService)
 - WEATHER_API_KEY (e.g., OpenWeather)
 - EVENTS_API_KEY (e.g., Ticketmaster, Eventbrite)
+- YELP_API_KEY (Yelp Fusion API)
 
 ## Rubric & Proposal
 
