@@ -1,0 +1,11 @@
+---
+alwaysApply: false
+---
+# Workflow and Testing Guidance
+
+- Prefer small, incremental commits with clear messages.
+- Use virtual environments; pin dependencies in `requirements.txt` when code is added.
+- Write tests for core logic. If no framework is set, start with `unittest`.
+- Keep data files out of version control unless they are tiny and essential.
+- Document how to run the project in a short `README.md` when code is added.
+- If a decision impacts the rubric, cite the rubric section in commit messages.

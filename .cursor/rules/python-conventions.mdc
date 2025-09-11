@@ -1,0 +1,13 @@
+---
+globs: *.py
+---
+# Python Conventions
+
+- Use Python 3.10+ syntax. Prefer type hints for function signatures and public APIs.
+- Run tools in this order when applicable: formatter, linter, tests.
+- Prefer `pathlib.Path` over `os.path` and f-strings over `str.format`.
+- Organize code into small, testable functions; avoid deep nesting.
+- Handle errors explicitly; avoid bare `except` clauses.
+- Document functions with concise docstrings that describe purpose, params, returns, and errors.
+- Avoid global state. Pass dependencies as parameters or use simple classes.
+- Keep modules cohesive; one major responsibility per file.
