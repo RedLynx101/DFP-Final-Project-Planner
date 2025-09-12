@@ -1,11 +1,11 @@
-"""
+r"""
 Title: API Keys Status Report Tests
 Team: Purple Turtles — Gwen Li, Aadya Agarwal, Emma Peng, Noah Hicks
 Date: 2025-09-12
 Summary: Always-run status prints for all potential external API keys, including unused EVENTS_API_KEY.
 Disclaimer: This file includes AI-assisted content (GPT-5); reviewed and approved by the Purple Turtles team.
 
-Test Script: pytest -q -s tests/test_api_keys_status.py
+Test Script: .\.venv\Scripts\python -m pytest -q -s tests\test_api_keys_status.py
 """
 
 import os
