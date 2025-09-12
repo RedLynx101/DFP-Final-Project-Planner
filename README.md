@@ -71,24 +71,31 @@ curl -X POST "http://localhost:8000/api/itinerary" \
 
 ```
 src/
-  main.py               # FastAPI app entrypoint
-  api/routes.py         # API routes (health, itinerary, search, events)
-  core/config.py        # Settings via pydantic BaseSettings (.env supported)
+  main.py                 # FastAPI app entrypoint
+  api/routes.py           # API routes (health, itinerary, search, events)
+  core/config.py          # Settings via pydantic BaseSettings (.env supported)
   core/logging_config.py
-  models/itinerary.py   # Pydantic models for request/response
+  models/itinerary.py     # Pydantic models for request/response
   services/
-    planner.py          # Builds itinerary options and single-plan fallback
-    visitpgh_scraper.py # Scrapes VisitPittsburgh events
-    ticketmaster_client.py # Ticketmaster Discovery API client (requires API key)
-    yelp_client.py      # Yelp Fusion client (requires API key)
-    maps_client.py      # Geocode + distance matrix (Google), haversine fallback
-    weather_client.py   # OpenWeather client + suitability scoring
+    planner.py            # Builds itinerary options and single-plan fallback
+    visitpgh_scraper.py   # Scrapes VisitPittsburgh events
+    ticketmaster_client.py# Ticketmaster Discovery API client (requires API key)
+    yelp_client.py        # Yelp Fusion client (requires API key)
+    maps_client.py        # Geocode + distance matrix (Google), haversine fallback
+    weather_client.py     # OpenWeather client + suitability scoring
 tests/
-  test_smoke.py
-  test_planner_options.py
+  README.md               # Tests overview and how to run
+  test_smoke.py           # Health + itinerary smoke
+  test_planner_options.py # Itinerary options and single-plan compat
+  test_scraper.py         # VisitPittsburgh scraper integration
+  test_ticketmaster_client.py # Ticketmaster client tests
+  test_maps_client.py     # Maps client (haversine + optional geocode)
+  test_weather_client.py  # Weather utilities (suitability, mapping)
+  test_classifier.py      # Heuristic classifier checks
 config/
   uvicorn.ini
 docs/
+  ENV_SETUP.md            # .env template and step-by-step integration tests
 assets/
 notebooks/
 ```
