@@ -34,8 +34,6 @@ def test_all_api_keys_status_report():
         "OpenWeather": os.getenv("WEATHER_API_KEY") or s.weather_api_key,
         "Google Maps": os.getenv("MAPS_API_KEY") or s.maps_api_key,
         "OpenAI": os.getenv("OPENAI_API_KEY") or s.openai_api_key,
-        # Unused placeholder surfaced for visibility
-        "Events (unused)": os.getenv("EVENTS_API_KEY") or s.events_api_key,
     }
 
     for name, key in keys.items():

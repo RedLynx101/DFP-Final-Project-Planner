@@ -7,7 +7,7 @@ Disclaimer: This document includes AI-assisted content (GPT-5); reviewed and app
 ## Layout
 
 - test_smoke.py — API health + itinerary smoke
-- test_api_keys_status.py — always-run status lines for API keys (Ticketmaster, Yelp, OpenWeather, Google Maps, OpenAI, unused Events)
+- test_api_keys_status.py — always-run status lines for API keys (Ticketmaster, Yelp, OpenWeather, Google Maps, OpenAI)
 - test_planner_options.py — itinerary options and backward-compat single plan
 - test_scraper.py — VisitPittsburgh scraper integration
 - test_ticketmaster_client.py — Ticketmaster client
