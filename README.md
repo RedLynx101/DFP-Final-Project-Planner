@@ -43,6 +43,8 @@ uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
 
 Open http://localhost:8000/docs for Swagger UI (interactive testing).
 
+More setup help: see `docs/ENV_SETUP.md` for a complete .env template and incremental testing steps (Ticketmaster, Yelp, Weather, Maps, OpenAI).
+
 ## API Endpoints
 
 - `GET /api/health`: Basic health check.
@@ -95,6 +97,11 @@ notebooks/
 
 - Run tests: `pytest -q`
 - Lint (optional if you add): `ruff check .` and `black .`
+
+Testing docs and structure: see `tests/README.md`. External-integration tests are marked `@pytest.mark.external`. Run them with:
+```powershell
+pytest -q -m external
+```
 
 ## Environment & Keys
 

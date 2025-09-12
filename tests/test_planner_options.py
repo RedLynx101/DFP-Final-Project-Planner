@@ -6,7 +6,7 @@ Summary: Tests for POST /api/itinerary/options, fallback behavior, and schema.
 Disclaimer: This file includes AI-assisted content (GPT-5); reviewed and approved by the Purple Turtles team.
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 from fastapi.testclient import TestClient
 from src.main import app
 
@@ -17,8 +17,8 @@ client = TestClient(app)
 def test_itinerary_options_endpoint_basic():
     payload = {
         "city": "Pittsburgh, PA",
-        "start_date": datetime.utcnow().isoformat(),
-        "end_date": (datetime.utcnow() + timedelta(days=1)).isoformat(),
+        "start_date": datetime.now(UTC).isoformat(),
+        "end_date": (datetime.now(UTC) + timedelta(days=1)).isoformat(),
         "preferences": {"budget_level": "medium", "interests": ["food"], "mobility": "walk"},
         "user_address": "5000 Forbes Ave, Pittsburgh, PA 15213",
         "max_distance_miles": 10,
@@ -34,8 +34,8 @@ def test_itinerary_options_endpoint_basic():
 def test_single_plan_endpoint_backwards_compat():
     payload = {
         "city": "Pittsburgh, PA",
-        "start_date": datetime.utcnow().isoformat(),
-        "end_date": (datetime.utcnow() + timedelta(days=1)).isoformat(),
+        "start_date": datetime.now(UTC).isoformat(),
+        "end_date": (datetime.now(UTC) + timedelta(days=1)).isoformat(),
         "preferences": {"budget_level": "medium", "interests": ["museums"], "mobility": "walk"},
         "user_address": "4900 Centre Ave, Pittsburgh, PA 15213",
         "max_distance_miles": 8,

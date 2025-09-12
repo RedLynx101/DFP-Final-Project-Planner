@@ -12,24 +12,24 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    app_name: str = Field("weekender", env="APP_NAME")
-    env: str = Field("development", env="ENV")
-    debug: bool = Field(True, env="DEBUG")
-    log_level: str = Field("INFO", env="LOG_LEVEL")
-    port: int = Field(8000, env="PORT")
+    app_name: str = Field("weekender", validation_alias="APP_NAME")
+    env: str = Field("development", validation_alias="ENV")
+    debug: bool = Field(True, validation_alias="DEBUG")
+    log_level: str = Field("INFO", validation_alias="LOG_LEVEL")
+    port: int = Field(8000, validation_alias="PORT")
 
-    openai_api_key: str = Field("changeme-openai-key", env="OPENAI_API_KEY")
-    maps_api_key: str = Field("changeme-maps-key", env="MAPS_API_KEY")
-    weather_api_key: str = Field("changeme-weather-key", env="WEATHER_API_KEY")
-    events_api_key: str = Field("changeme-events-key", env="EVENTS_API_KEY")
-    yelp_api_key: str = Field("changeme-yelp-key", env="YELP_API_KEY")
-    ticketmaster_api_key: str = Field("changeme-ticketmaster-key", env="TICKETMASTER_API_KEY")
+    openai_api_key: str = Field("changeme-openai-key", validation_alias="OPENAI_API_KEY")
+    maps_api_key: str = Field("changeme-maps-key", validation_alias="MAPS_API_KEY")
+    weather_api_key: str = Field("changeme-weather-key", validation_alias="WEATHER_API_KEY")
+    events_api_key: str = Field("changeme-events-key", validation_alias="EVENTS_API_KEY")
+    yelp_api_key: str = Field("changeme-yelp-key", validation_alias="YELP_API_KEY")
+    ticketmaster_api_key: str = Field("changeme-ticketmaster-key", validation_alias="TICKETMASTER_API_KEY")
 
     # Maps provider selection: "google" or "none" (haversine fallback)
-    maps_provider: str = Field("google", env="MAPS_PROVIDER")
+    maps_provider: str = Field("google", validation_alias="MAPS_PROVIDER")
 
-    cache_backend: str = Field("memory", env="CACHE_BACKEND")
-    database_url: str = Field("sqlite:///./weekender.sqlite3", env="DATABASE_URL")
+    cache_backend: str = Field("memory", validation_alias="CACHE_BACKEND")
+    database_url: str = Field("sqlite:///./weekender.sqlite3", validation_alias="DATABASE_URL")
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 

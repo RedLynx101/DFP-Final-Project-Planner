@@ -8,7 +8,7 @@ Disclaimer: This file includes AI-assisted content (GPT-5); reviewed and approve
 
 from fastapi.testclient import TestClient
 from src.main import app
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 
 
 client = TestClient(app)
@@ -23,8 +23,8 @@ def test_health():
 def test_itinerary():
     payload = {
         "city": "Pittsburgh, PA",
-        "start_date": datetime.utcnow().isoformat(),
-        "end_date": (datetime.utcnow() + timedelta(days=1)).isoformat(),
+        "start_date": datetime.now(UTC).isoformat(),
+        "end_date": (datetime.now(UTC) + timedelta(days=1)).isoformat(),
         "preferences": {"budget_level": "low", "interests": ["food"], "mobility": "walk"},
     }
     resp = client.post("/api/itinerary", json=payload)

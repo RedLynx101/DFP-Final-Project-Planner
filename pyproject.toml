@@ -1,7 +1,10 @@
 [tool.pytest.ini_options]
 pythonpath = ["."]
 testpaths = ["tests"]
-addopts = "-q"
+addopts = "-q -W ignore::DeprecationWarning"
+markers = [
+    "external: marks tests that hit external services (deselect with -m 'not external')",
+]
 
 [tool.ruff]
 line-length = 100
