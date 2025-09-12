@@ -46,9 +46,16 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
+Note: External tests are excluded by default via `pytest.ini`. To include them, use `-m external`.
+
 0) Baseline scraper (no keys needed):
 ```powershell
 pytest -q tests/test_scraper.py -q
+```
+
+0.1) API keys status (no keys needed; prints what's active). Use -s to see lines:
+```powershell
+pytest -q -s tests/test_api_keys_status.py
 ```
 
 1) Ticketmaster API (set TICKETMASTER_API_KEY):
@@ -77,6 +84,11 @@ Invoke-RestMethod "http://localhost:8000/api/food/search?query=ramen&location=Pi
 Alternatively, run the pytest-based check (skips if no key):
 ```powershell
 pytest -q -m external tests/test_yelp_client.py -q
+```
+
+You can also run all external tests together (keys set):
+```powershell
+pytest -q -m external -s
 ```
 
 3) OpenWeather (set WEATHER_API_KEY) — check planner uses weather:
@@ -109,6 +121,11 @@ PY
 ```powershell
 $env:OPENAI_API_KEY="<YOUR_KEY>"
 python -c "from src.services.classifier import classify_environment as c; print('gym indoor? ->', c('Indoor climbing gym event')); print('park outdoor? ->', c('Park festival with tents'))"
+```
+
+Optional pytest-based check (skips if no key):
+```powershell
+pytest -q -m external -s tests/test_classifier.py
 ```
 
 If any integration is missing, the app gracefully degrades (e.g., haversine distances, minimal fallback itineraries), so you can proceed incrementally.

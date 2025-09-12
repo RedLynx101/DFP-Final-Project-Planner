@@ -22,10 +22,12 @@ def test_yelp_requires_key_env_set_or_realistic_default():
     if key_from_env:
         # If user explicitly set a key, it should not be the placeholder
         assert not key_from_env.startswith("changeme"), "YELP_API_KEY is a placeholder; set a real key or unset it"
+        print("Yelp: key detected in env")
     else:
         # If not set in env, config may still read from .env; fetch it
         cfg_key = get_settings().yelp_api_key
         # Allow placeholder in quick runs; just assert the config attribute exists
+        print("Yelp: using .env-backed config; placeholder acceptable for quick runs")
         assert isinstance(cfg_key, str)
 
 
@@ -54,5 +56,6 @@ def test_yelp_search_with_key_optional():
         assert "name" in r
         assert "rating" in r
         assert "url" in r
+    print("Yelp success: fetched", len(data.get("results", [])), "results for 'ramen'")
 
 

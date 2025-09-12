@@ -106,9 +106,16 @@ notebooks/
 - Run tests: `pytest -q`
 - Lint (optional if you add): `ruff check .` and `black .`
 
-Testing docs and structure: see `tests/README.md`. External-integration tests are marked `@pytest.mark.external`. Run them with:
+Testing docs and structure: see `tests/README.md`.
+By default, tests marked `@pytest.mark.external` are excluded (see `pytest.ini`).
+Run external tests with:
 ```powershell
 pytest -q -m external
+```
+
+Key status report (to see which integrations are active). Use `-s` to show prints:
+```powershell
+pytest -q -s tests/test_api_keys_status.py
 ```
 
 ## Environment & Keys

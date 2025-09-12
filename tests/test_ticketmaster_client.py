@@ -31,7 +31,7 @@ def test_ticketmaster_no_key_returns_empty():
         assert isinstance(data["events"], list), "Ticketmaster (no key): 'events' should be a list"
         assert len(data["events"]) == 0, "Ticketmaster (no key): expected zero events when key is unset"
         # Helpful runtime context when run with -s
-        print(f"Ticketmaster disabled (no key): events returned = {len(data.get('events', []))}")
+        print(f"Ticketmaster: disabled (no key) — events returned = {len(data.get('events', []))}")
     finally:
         if prev is None:
             os.environ.pop("TICKETMASTER_API_KEY", None)
@@ -63,14 +63,7 @@ def test_ticketmaster_with_key_smoke():
     assert isinstance(data["events"], list), "Ticketmaster: 'events' should be a list"
     count = len(data.get("events", []))
     # Helpful runtime context when run with -s
-    print(
-        "Ticketmaster success: fetched",
-        count,
-        "events for Pittsburgh between",
-        start,
-        "and",
-        end,
-    )
+    print("Ticketmaster success: fetched", count, "events for Pittsburgh between", start, "and", end)
     # Structure checks when present
     if data["events"]:
         e = data["events"][0]
