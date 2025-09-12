@@ -85,7 +85,8 @@ def fetch_events_ticketmaster(
                 coords = {"lat": lat_val, "lon": lon_val}
             except Exception:
                 coords = None
-        info = e.get("info") or e.get("pleaseNote") or e.get("id")
+        # Prefer human-readable fields; avoid falling back to opaque event IDs
+        info = e.get("info") or e.get("pleaseNote") or None
         events.append(
             {
                 "title": title,
