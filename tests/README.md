@@ -15,6 +15,7 @@ Disclaimer: This document includes AI-assisted content (GPT-5); reviewed and app
 - test_maps_client.py — Maps client
 - test_weather_client.py — Weather utilities
 - test_classifier.py — Heuristic classifier
+- test_openai_places.py — External: classify five places via OpenAI and print success rate
 
 ## Running
 
@@ -53,6 +54,12 @@ pytest -q tests/test_scraper.py
 Run external tests (require API keys in environment or .env):
 ```powershell
 pytest -q -m external
+```
+
+Run only the OpenAI places classification test:
+```powershell
+$env:OPENAI_API_KEY="<YOUR_KEY>"
+pytest -q -m external -s tests\test_openai_places.py
 ```
 
 Tips:

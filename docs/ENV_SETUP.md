@@ -128,6 +128,12 @@ Optional pytest-based check (skips if no key):
 pytest -q -m external -s tests/test_classifier.py
 ```
 
+OpenAI places classification accuracy (five items) — requires key and external marker:
+```powershell
+$env:OPENAI_API_KEY="<YOUR_KEY>"
+pytest -q -m external -s tests/test_openai_places.py
+```
+
 If any integration is missing, the app gracefully degrades (e.g., haversine distances, minimal fallback itineraries), so you can proceed incrementally.
 
 

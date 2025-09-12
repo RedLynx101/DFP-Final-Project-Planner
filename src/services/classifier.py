@@ -71,7 +71,7 @@ def classify_environment(text: str) -> str:
             "If truly unclear, return 'unknown'. Text: " + text[:800]
         )
         resp = client.chat.completions.create(
-            model="gpt-oss-20b",
+            model="gpt-5-nano-2025-08-07",
             messages=[{"role": "user", "content": prompt}],
             temperature=0,
             max_tokens=3,
