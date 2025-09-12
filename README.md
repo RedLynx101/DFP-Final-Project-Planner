@@ -89,6 +89,7 @@ tests/
   test_planner_options.py # Itinerary options and single-plan compat
   test_scraper.py         # VisitPittsburgh scraper integration
   test_ticketmaster_client.py # Ticketmaster client tests
+  test_yelp_client.py     # Yelp Fusion client tests
   test_maps_client.py     # Maps client (haversine + optional geocode)
   test_weather_client.py  # Weather utilities (suitability, mapping)
   test_classifier.py      # Heuristic classifier checks

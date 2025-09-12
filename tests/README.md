@@ -10,6 +10,7 @@ Disclaimer: This document includes AI-assisted content (GPT-5); reviewed and app
 - test_planner_options.py — itinerary options and backward-compat single plan
 - test_scraper.py — VisitPittsburgh scraper integration
 - test_ticketmaster_client.py — Ticketmaster client
+- test_yelp_client.py — Yelp Fusion client
 - test_maps_client.py — Maps client
 - test_weather_client.py — Weather utilities
 - test_classifier.py — Heuristic classifier
@@ -34,6 +35,7 @@ pytest -q -m external
 Tip: You can use PowerShell to set a key for the current session:
 ```powershell
 $env:TICKETMASTER_API_KEY="<YOUR_KEY>"
+$env:YELP_API_KEY="<YOUR_KEY>"
 ```
 
 

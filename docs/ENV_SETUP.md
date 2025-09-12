@@ -74,6 +74,11 @@ $env:YELP_API_KEY="<YOUR_KEY>"
 Invoke-RestMethod "http://localhost:8000/api/food/search?query=ramen&location=Pittsburgh,%20PA&limit=3" | ConvertTo-Json -Depth 5
 ```
 
+Alternatively, run the pytest-based check (skips if no key):
+```powershell
+pytest -q -m external tests/test_yelp_client.py -q
+```
+
 3) OpenWeather (set WEATHER_API_KEY) — check planner uses weather:
 ```powershell
 $env:WEATHER_API_KEY="<YOUR_KEY>"
