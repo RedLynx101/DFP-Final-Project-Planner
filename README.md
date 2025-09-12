@@ -123,10 +123,6 @@ Create a `.env` (optional) to enable external integrations. Keep real secrets ou
 Behavior without keys:
 - The app still starts. VisitPittsburgh scraping is attempted for events. Yelp, Ticketmaster, Weather, and Maps features are skipped if keys are missing; the planner returns what it can and may provide a minimal fallback itinerary.
 
-## Rubric & Proposal
-
-- See `final_project_rubric.docx` and proposal PDF in the repo root.
-
 ## License
 
 Academic project for CMU course. Team: Purple Turtles.
