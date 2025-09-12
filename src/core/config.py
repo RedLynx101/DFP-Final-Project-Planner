@@ -23,6 +23,10 @@ class Settings(BaseSettings):
     weather_api_key: str = Field("changeme-weather-key", env="WEATHER_API_KEY")
     events_api_key: str = Field("changeme-events-key", env="EVENTS_API_KEY")
     yelp_api_key: str = Field("changeme-yelp-key", env="YELP_API_KEY")
+    ticketmaster_api_key: str = Field("changeme-ticketmaster-key", env="TICKETMASTER_API_KEY")
+
+    # Maps provider selection: "google" or "none" (haversine fallback)
+    maps_provider: str = Field("google", env="MAPS_PROVIDER")
 
     cache_backend: str = Field("memory", env="CACHE_BACKEND")
     database_url: str = Field("sqlite:///./weekender.sqlite3", env="DATABASE_URL")

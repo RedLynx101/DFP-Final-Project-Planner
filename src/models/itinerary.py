@@ -31,6 +31,15 @@ class Activity(BaseModel):
     external_url: Optional[str] = None
     source: Optional[str] = Field(None, description="source identifier e.g. visitpgh|yelp")
     environment: Optional[str] = Field(None, description="indoor|outdoor|unknown")
+    coordinates: Optional[Dict[str, float]] = Field(
+        None, description="Geographic coordinates {lat, lon} if known"
+    )
+    distance_miles: Optional[float] = Field(
+        None, description="Distance from user's origin in miles if origin provided"
+    )
+    travel_time_minutes: Optional[int] = Field(
+        None, description="Estimated travel time from previous stop or origin"
+    )
 
 
 class DayPlan(BaseModel):
@@ -43,6 +52,12 @@ class ItineraryRequest(BaseModel):
     start_date: datetime
     end_date: datetime
     preferences: Preference = Field(default_factory=Preference)
+    user_address: Optional[str] = Field(
+        None, description="User origin street address for distance calculations"
+    )
+    max_distance_miles: Optional[float] = Field(
+        None, description="Maximum distance from origin in miles for included activities"
+    )
 
 
 class ItineraryResponse(BaseModel):

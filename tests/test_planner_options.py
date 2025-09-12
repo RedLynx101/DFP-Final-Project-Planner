@@ -20,6 +20,8 @@ def test_itinerary_options_endpoint_basic():
         "start_date": datetime.utcnow().isoformat(),
         "end_date": (datetime.utcnow() + timedelta(days=1)).isoformat(),
         "preferences": {"budget_level": "medium", "interests": ["food"], "mobility": "walk"},
+        "user_address": "5000 Forbes Ave, Pittsburgh, PA 15213",
+        "max_distance_miles": 10,
     }
     resp = client.post("/api/itinerary/options", json=payload)
     assert resp.status_code == 200
@@ -35,6 +37,8 @@ def test_single_plan_endpoint_backwards_compat():
         "start_date": datetime.utcnow().isoformat(),
         "end_date": (datetime.utcnow() + timedelta(days=1)).isoformat(),
         "preferences": {"budget_level": "medium", "interests": ["museums"], "mobility": "walk"},
+        "user_address": "4900 Centre Ave, Pittsburgh, PA 15213",
+        "max_distance_miles": 8,
     }
     resp = client.post("/api/itinerary", json=payload)
     assert resp.status_code == 200

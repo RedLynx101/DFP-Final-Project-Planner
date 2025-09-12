@@ -25,6 +25,8 @@ from .visitpgh_scraper import fetch_this_week_events
 from .yelp_client import search_food
 from .classifier import classify_environment
 from .weather_client import fetch_forecast, map_forecast_to_days
+from .maps_client import geocode_address, distance_matrix_miles
+from .ticketmaster_client import fetch_events_ticketmaster
 
 
 WEEKDAY_NAMES = [
@@ -56,6 +58,20 @@ def _parse_day_from_text(text: str) -> Optional[str]:
         return WEEKDAY_NAMES[dt.weekday()]
     except Exception:
         return None
+
+
+def _weekday_from_iso_datetime(dt_str: Optional[str]) -> Optional[str]:
+    if not dt_str:
+        return None
+    try:
+        dt = date_parser.parse(dt_str, fuzzy=True)
+        return WEEKDAY_NAMES[dt.weekday()]
+    except Exception:
+        return None
+
+
+def _pittsburgh_coords() -> Dict[str, float]:
+    return {"lat": 40.4406, "lon": -79.9959}
 
 
 def _pick_non_overlapping_blocks(
@@ -128,7 +144,7 @@ def _collect_candidates(
     sources: Dict[str, int] = {}
     candidates: List[Dict[str, Any]] = []
 
-    # VisitPgh events
+    # VisitPgh events (web-scraped)
     try:
         events_payload = fetch_this_week_events()
         for e in events_payload.get("events", []):
@@ -183,6 +199,33 @@ def _collect_candidates(
     except Exception as exc:
         warnings.append(f"yelp_unavailable: {exc}")
 
+    # Ticketmaster events (API)
+    try:
+        # For MVP, query broadly for date range around now; refined windowing will happen per request
+        tm_payload = fetch_events_ticketmaster(city="Pittsburgh")
+        for e in tm_payload.get("events", []):
+            title = e.get("title") or ""
+            details = e.get("details") or ""
+            url = e.get("url")
+            env = classify_environment(f"{title} {details}")
+            day_name = _weekday_from_iso_datetime(e.get("start_datetime"))
+            candidates.append(
+                {
+                    "title": title,
+                    "category": "event",
+                    "type": "event",
+                    "notes": details,
+                    "url": url,
+                    "source": "ticketmaster",
+                    "environment": env,
+                    "day_name": day_name,
+                    "coordinates": e.get("coordinates"),
+                }
+            )
+        sources["ticketmaster"] = len(tm_payload.get("events", []))
+    except Exception as exc:
+        warnings.append(f"ticketmaster_unavailable: {exc}")
+
     # Filter by interests loosely if provided (keep broad for MVP)
     if interests:
         keep: List[Dict[str, Any]] = []
@@ -223,6 +266,41 @@ def build_itinerary_options(request: ItineraryRequest) -> ItineraryOptionsRespon
     for k, v in s2.items():
         used_sources[k] = used_sources.get(k, 0) + v
 
+    # Geocode user origin if provided
+    origin_coords: Optional[Dict[str, float]] = None
+    if request.user_address:
+        origin_coords = geocode_address(request.user_address)
+        if origin_coords is None:
+            # Fallback to Pittsburgh center to avoid breakage
+            origin_coords = _pittsburgh_coords()
+
+    # Attach distances from origin when possible and filter by max distance if requested
+    if origin_coords is not None:
+        dests = [c.get("coordinates") for c in candidates]
+        # For items without coords, attempt naive geocode by address once
+        for c in candidates:
+            if not c.get("coordinates") and c.get("address"):
+                gc = geocode_address(c["address"])  # may be None
+                if gc:
+                    c["coordinates"] = gc
+        destinations = [c.get("coordinates") or origin_coords for c in candidates]
+        matrix = distance_matrix_miles([origin_coords], destinations)
+        if matrix:
+            row0 = matrix[0]
+            for idx, c in enumerate(candidates):
+                dm = row0[idx]
+                c["distance_miles"] = dm.get("distance_miles")
+                c["duration_minutes"] = dm.get("duration_minutes")
+
+        if request.max_distance_miles is not None:
+            def within_limit(item: Dict[str, Any]) -> bool:
+                dist = item.get("distance_miles")
+                if dist is None:
+                    return True  # keep unknowns to avoid over-filtering
+                return dist <= request.max_distance_miles
+
+            candidates = [c for c in candidates if within_limit(c)]
+
     # Build up to 3 options by selecting different events per day
     options: List[ItineraryResponse] = []
     day_dates = list(_daterange(request.start_date, request.end_date))
@@ -255,7 +333,17 @@ def build_itinerary_options(request: ItineraryRequest) -> ItineraryOptionsRespon
                 day_events = [e for e in events_by_day.get("unknown", []) if e.get("title") not in used_titles]
 
             # Choose candidates to assemble blocks
-            day_candidates = list(day_events) + [c for c in candidates if c.get("category") == "food"]
+            # Prefer events closest to origin first if distances available
+            def sort_by_distance(items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+                return sorted(
+                    items,
+                    key=lambda x: (x.get("distance_miles") is None, x.get("distance_miles") or 0.0),
+                )
+
+            day_events_sorted = sort_by_distance(day_events)
+            food_all = [c for c in candidates if c.get("category") == "food"]
+            food_sorted = sort_by_distance(food_all)
+            day_candidates = list(day_events_sorted) + list(food_sorted)
             activities = _pick_non_overlapping_blocks(
                 day=day_dt,
                 candidates=day_candidates,
@@ -279,7 +367,7 @@ def build_itinerary_options(request: ItineraryRequest) -> ItineraryOptionsRespon
             ItineraryResponse(
                 title=f"Plan {opt_idx + 1}: {request.city}",
                 days=days,
-                summary="Auto-generated from VisitPgh events, Yelp picks, and weather (when available).",
+                summary="Auto-generated from VisitPgh & Ticketmaster events, Yelp picks, weather, and distance preferences.",
                 warnings=warnings.copy(),
                 sources=used_sources.copy(),
             )

@@ -4,7 +4,7 @@ Purple Turtles — Gwen Li, Aadya Agarwal, Emma Peng, Noah Hicks
 
 Date: 2025-09-11
 
-Summary: FastAPI backend that generates Pittsburgh weekend itineraries. It pulls event highlights from VisitPittsburgh, food options from Yelp (if API key provided), and weather from OpenWeather (if API key provided). It returns one or multiple itinerary options and gracefully falls back if external services are unavailable.
+Summary: FastAPI backend that generates Pittsburgh weekend itineraries. It pulls event highlights from VisitPittsburgh (scraper) and Ticketmaster (API), food options from Yelp (if API key provided), and weather from OpenWeather (if API key provided). It can consider a user's address, compute distances/times, filter by max distance, and sequence activities by proximity. If external services are unavailable, it falls back gracefully.
 
 Disclaimer: This repository includes AI-assisted content (GPT-5); reviewed and approved by the Purple Turtles team.
 
@@ -29,7 +29,10 @@ LOG_LEVEL=INFO
 # External APIs (optional but recommended)
 YELP_API_KEY=your_yelp_fusion_key
 WEATHER_API_KEY=your_openweather_key
-OPENAI_API_KEY=your_openai_key  # optional; used for classifier refinement
+OPENAI_API_KEY=your_openai_key  # optional; classifier refinement
+TICKETMASTER_API_KEY=your_ticketmaster_key  # API-based events
+MAPS_API_KEY=your_google_maps_key          # geocoding + distance matrix
+MAPS_PROVIDER=google                       # or "none" for haversine fallback
 ```
 5) Run the dev server (either):
 ```powershell
@@ -43,12 +46,12 @@ Open http://localhost:8000/docs for Swagger UI (interactive testing).
 ## API Endpoints
 
 - `GET /api/health`: Basic health check.
-- `POST /api/itinerary` → `ItineraryResponse`: Single best plan (uses the options builder under the hood; returns the first option or a minimal fallback if sources fail).
-- `POST /api/itinerary/options` → `ItineraryOptionsResponse`: Up to three itinerary options based on events, food, and weather.
+- `POST /api/itinerary` → `ItineraryResponse`: Single best plan (uses the options builder; returns first option or a minimal fallback).
+- `POST /api/itinerary/options` → `ItineraryOptionsResponse`: Up to three itinerary options based on events (VisitPgh + Ticketmaster), food (Yelp), weather, and distance from the user's address.
 - `GET /api/food/search?query=ramen&location=Pittsburgh%2C%20PA&limit=5[&price=1,2]`: Yelp Fusion proxy. Requires `YELP_API_KEY`.
 - `GET /api/events/this-week`: Scrapes VisitPittsburgh "This Week" page. No API key required; site structure changes may affect results.
 
-Example request for `POST /api/itinerary`:
+Example request for `POST /api/itinerary` (with user address & max distance):
 ```bash
 curl -X POST "http://localhost:8000/api/itinerary" \
   -H "Content-Type: application/json" \
@@ -56,7 +59,9 @@ curl -X POST "http://localhost:8000/api/itinerary" \
     "city": "Pittsburgh, PA",
     "start_date": "2025-09-12T09:00:00Z",
     "end_date": "2025-09-14T18:00:00Z",
-    "preferences": {"budget_level": "medium", "interests": ["food", "museums"], "mobility": "walk", "environment": "either"}
+    "preferences": {"budget_level": "medium", "interests": ["food", "museums"], "mobility": "walk", "environment": "either"},
+    "user_address": "5000 Forbes Ave, Pittsburgh, PA 15213",
+    "max_distance_miles": 5
   }'
 ```
 
@@ -72,7 +77,9 @@ src/
   services/
     planner.py          # Builds itinerary options and single-plan fallback
     visitpgh_scraper.py # Scrapes VisitPittsburgh events
+    ticketmaster_client.py # Ticketmaster Discovery API client (requires API key)
     yelp_client.py      # Yelp Fusion client (requires API key)
+    maps_client.py      # Geocode + distance matrix (Google), haversine fallback
     weather_client.py   # OpenWeather client + suitability scoring
 tests/
   test_smoke.py
@@ -95,10 +102,12 @@ Create a `.env` (optional) to enable external integrations. Keep real secrets ou
 - `YELP_API_KEY` (Yelp Fusion API) — enables `/api/food/search` and richer food picks in itineraries
 - `WEATHER_API_KEY` (OpenWeather) — enables weather-aware planning
 - `OPENAI_API_KEY` (optional) — may refine indoor/outdoor classification; heuristics are used otherwise
+- `TICKETMASTER_API_KEY` — enables Ticketmaster events (API-based source)
+- `MAPS_API_KEY`, `MAPS_PROVIDER` — enables geocoding + travel distance/time (Google)
 - `APP_NAME`, `LOG_LEVEL` — general app config
 
 Behavior without keys:
-- The app still starts. VisitPittsburgh scraping is attempted for events. Yelp and weather calls are skipped; planner returns what it can and will provide a minimal fallback plan if sources are unavailable.
+- The app still starts. VisitPittsburgh scraping is attempted for events. Yelp, Ticketmaster, Weather, and Maps features are skipped if keys are missing; the planner returns what it can and may provide a minimal fallback itinerary.
 
 ## Rubric & Proposal
 
@@ -111,6 +120,6 @@ Academic project for CMU course. Team: Purple Turtles.
 ---
 
 What it does right now:
-- Exposes a FastAPI service that can generate up to three itinerary options for a given date range in Pittsburgh, mixing event picks (VisitPittsburgh), food picks (Yelp, if key), and weather suitability (OpenWeather, if key). If external sources fail or are not configured, it returns a minimal, sensible fallback itinerary so tests and demos still succeed.
+- Generates up to three itinerary options considering events (VisitPittsburgh + Ticketmaster), food (Yelp), weather (OpenWeather), and distance from a user-provided address (Google Maps if configured, haversine fallback). Applies a max-distance filter and prefers closer items when sequencing. Falls back if sources are unavailable.
 
 
