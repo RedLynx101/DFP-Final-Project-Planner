@@ -35,9 +35,6 @@ MAPS_API_KEY=
 
 # Optional — OpenAI (for classifier refinement)
 OPENAI_API_KEY=
-
-# Legacy/unused placeholder (can be blank)
-EVENTS_API_KEY=
 ```
 
 ## Recommended testing order
