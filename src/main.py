@@ -8,9 +8,12 @@ Disclaimer: This file includes AI-assisted content (GPT-5); reviewed and approve
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from .core.config import get_settings
 from .core.logging_config import configure_logging
 from .api.routes import router as api_router
+import os
 
 
 def create_app() -> FastAPI:
@@ -42,7 +45,7 @@ def create_app() -> FastAPI:
     
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=explicit_origins if explicit_origins else None,
+        allow_origins=explicit_origins if explicit_origins else ["*"],
         allow_origin_regex=allow_origin_regex,
         allow_credentials=True,
         allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
@@ -50,6 +53,27 @@ def create_app() -> FastAPI:
     )
     
     app.include_router(api_router, prefix="/api")
+    
+    # Serve static files from React build
+    frontend_dist = os.path.join(os.path.dirname(os.path.dirname(__file__)), "frontend", "dist")
+    if os.path.exists(frontend_dist):
+        # Mount static assets
+        app.mount("/assets", StaticFiles(directory=os.path.join(frontend_dist, "assets")), name="assets")
+        
+        # Catch-all route for SPA - serves index.html for any non-API route
+        @app.get("/{full_path:path}")
+        async def serve_spa(full_path: str):
+            # Don't interfere with API routes or docs
+            if full_path.startswith("api/") or full_path in ["docs", "redoc", "openapi.json"]:
+                return {"detail": "Not found"}
+            
+            # Serve index.html for SPA routing
+            index_file = os.path.join(frontend_dist, "index.html")
+            if os.path.exists(index_file):
+                return FileResponse(index_file)
+            else:
+                return {"detail": "Frontend not built"}
+    
     return app
 
 
