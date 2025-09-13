@@ -103,8 +103,6 @@ config/
   uvicorn.ini
 docs/
   ENV_SETUP.md            # .env template and step-by-step integration tests
-assets/
-notebooks/
 ```
 
 ## Development
