@@ -32,6 +32,12 @@ class Settings(BaseSettings):
 
     cache_backend: str = Field("memory", validation_alias="CACHE_BACKEND")
     database_url: str = Field("sqlite:///./weekender.sqlite3", validation_alias="DATABASE_URL")
+    
+    # CORS configuration for production-ready deployments
+    cors_origins: str = Field(
+        "http://localhost:5000,http://127.0.0.1:5000,https://*.replit.dev,https://*.repl.co",
+        validation_alias="CORS_ORIGINS"
+    )
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 

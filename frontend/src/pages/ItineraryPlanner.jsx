@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { apiService } from '../services/api';
 import DatePicker from '../components/DatePicker';
 
@@ -22,7 +22,7 @@ const ItineraryPlanner = () => {
   const [error, setError] = useState(null);
 
   // Set default dates to upcoming weekend
-  useState(() => {
+  useEffect(() => {
     const now = new Date();
     const daysUntilSat = (6 - now.getDay()) % 7;
     const saturday = new Date(now);

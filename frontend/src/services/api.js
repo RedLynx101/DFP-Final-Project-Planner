@@ -1,17 +1,40 @@
 import axios from 'axios';
 
-// Get the backend URL - use the Replit domain if available, otherwise localhost
+// Get the backend URL - secure production-ready logic
 const getBackendUrl = () => {
-  if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
-    // In Replit, replace port in domain to get backend URL
-    const hostname = window.location.hostname;
-    const replitDomain = hostname.replace(/-.+\./, '-00-23tgmvbh4vn59.');
-    return `https://${replitDomain}`;
+  // Check if we're in production mode
+  const isProduction = import.meta.env.MODE === 'production' || import.meta.env.PROD;
+  
+  // In production, VITE_API_BASE_URL is mandatory
+  if (isProduction) {
+    if (!import.meta.env.VITE_API_BASE_URL) {
+      throw new Error(
+        'VITE_API_BASE_URL is required in production. ' +
+        'Please set this environment variable to your backend API URL.'
+      );
+    }
+    return import.meta.env.VITE_API_BASE_URL;
   }
+  
+  // In development, prefer environment variable, fallback to localhost
+  if (import.meta.env.VITE_API_BASE_URL) {
+    return import.meta.env.VITE_API_BASE_URL;
+  }
+  
+  // Development fallback only
   return 'http://localhost:8000';
 };
 
-const API_BASE_URL = getBackendUrl();
+// Initialize API base URL with error handling
+let API_BASE_URL;
+try {
+  API_BASE_URL = getBackendUrl();
+} catch (error) {
+  console.error('API Configuration Error:', error.message);
+  // In case of configuration error, we still need a URL for axios
+  // This will cause API calls to fail gracefully
+  API_BASE_URL = 'http://localhost:8000';
+}
 
 const api = axios.create({
   baseURL: API_BASE_URL,
