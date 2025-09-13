@@ -50,8 +50,8 @@ More setup help: see `docs/ENV_SETUP.md` for a complete .env template and increm
 ## API Endpoints
 
 - `GET /api/health`: Basic health check.
-- `POST /api/itinerary` → `ItineraryResponse`: Single best plan (uses the options builder; returns first option or a minimal fallback).
-- `POST /api/itinerary/options` → `ItineraryOptionsResponse`: Up to three itinerary options based on events (VisitPgh + Ticketmaster), food (Yelp), weather, and distance from the user's address.
+- `POST /api/itinerary` → `ItineraryResponse`: Single best plan (uses the options builder; returns first option or a minimal fallback). Defaults prefilled in Swagger to upcoming weekend (Sat 09:00 → Sun 21:00), user address set to Hamburg Hall (CMU), and max distance = 5 miles.
+- `POST /api/itinerary/options` → `ItineraryOptionsResponse`: Up to three diversified itinerary options based on events (VisitPgh + Ticketmaster), food (Yelp), weather, and distance from the user's address, respecting preferences and max distance.
 - `GET /api/food/search?query=ramen&location=Pittsburgh%2C%20PA&limit=5[&price=1,2]`: Yelp Fusion proxy. Requires `YELP_API_KEY`.
 - `GET /api/events/this-week`: Scrapes VisitPittsburgh "This Week" page. No API key required; site structure changes may affect results.
 

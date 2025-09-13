@@ -4,6 +4,11 @@ Date: 2025-09-12
 Summary: How to run the test suite and optional external tests. Includes API key status reporting.
 Disclaimer: This document includes AI-assisted content (GPT-5); reviewed and approved by the Purple Turtles team.
 
+What I use, quick command:
+```powershell
+pytest -s -m external
+```
+
 ## Layout
 
 - test_smoke.py — API health + itinerary smoke

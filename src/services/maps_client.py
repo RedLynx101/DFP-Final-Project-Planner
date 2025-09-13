@@ -3,7 +3,7 @@ Title: Maps Client (Geocoding + Distance)
 Team: Purple Turtles — Gwen Li, Aadya Agarwal, Emma Peng, Noah Hicks
 Date: 2025-09-12
 Summary: Provides geocoding of addresses to lat/lon and distance estimation. Uses
-         Google Maps if configured; otherwise falls back to simple haversine.
+        Google Maps if configured; otherwise falls back to simple haversine.
 Disclaimer: This file includes AI-assisted content (GPT-5); reviewed and approved by the Purple Turtles team.
 """
 
@@ -31,6 +31,12 @@ def _haversine_miles(lat1: float, lon1: float, lat2: float, lon2: float) -> floa
 
 
 def geocode_address(address: str) -> Optional[Dict[str, float]]:
+    # Known local addresses fallback (works without Google Maps)
+    lowered = address.lower()
+    if "hamburg hall" in lowered or "4800 forbes" in lowered or "carnegie mellon" in lowered or "cmu" in lowered:
+        # Hamburg Hall / CMU vicinity
+        return {"lat": 40.4439, "lon": -79.9430}
+
     settings = get_settings()
     if settings.maps_provider == "google" and settings.maps_api_key and not settings.maps_api_key.startswith("changeme"):
         params = {"address": address, "key": settings.maps_api_key}

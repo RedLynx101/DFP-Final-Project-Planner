@@ -6,9 +6,35 @@ Summary: Pydantic models for itinerary planning domain.
 Disclaimer: This file includes AI-assisted content (GPT-5); reviewed and approved by the Purple Turtles team.
 """
 
-from datetime import datetime, time
+from datetime import datetime, time, timedelta
 from typing import Dict, List, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
+
+
+def _next_weekend_start() -> datetime:
+    """Compute the upcoming Saturday at 09:00 local time.
+
+    If today is Saturday but past 09:00, keep today; otherwise next Saturday.
+    """
+    now = datetime.now()
+    # Monday=0 ... Sunday=6; Saturday=5
+    days_until_sat = (5 - now.weekday()) % 7
+    sat = now + timedelta(days=days_until_sat)
+    start = sat.replace(hour=9, minute=0, second=0, microsecond=0)
+    if days_until_sat == 0 and now < start:
+        # It's Saturday before 09:00 → use today 09:00
+        return start
+    if days_until_sat == 0 and now >= start:
+        # It's Saturday after 09:00 → keep today to include the rest of day
+        return start
+    return start
+
+
+def _next_weekend_end() -> datetime:
+    """Compute the upcoming Sunday at 21:00 local time based on next weekend start."""
+    sat_start = _next_weekend_start()
+    sun_end = (sat_start + timedelta(days=1)).replace(hour=21, minute=0, second=0, microsecond=0)
+    return sun_end
 
 
 class Preference(BaseModel):
@@ -48,15 +74,28 @@ class DayPlan(BaseModel):
 
 
 class ItineraryRequest(BaseModel):
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "city": "Pittsburgh, PA",
+                "start_date": _next_weekend_start().isoformat(),
+                "end_date": _next_weekend_end().isoformat(),
+                "preferences": {"budget_level": "medium", "interests": ["food", "museums"], "mobility": "walk", "environment": "either"},
+                "user_address": "Hamburg Hall, 4800 Forbes Ave, Pittsburgh, PA 15213",
+                "max_distance_miles": 5,
+            }
+        }
+    )
     city: str = Field("Pittsburgh, PA")
-    start_date: datetime
-    end_date: datetime
+    start_date: datetime = Field(default_factory=_next_weekend_start, description="Start datetime; defaults to upcoming Saturday 09:00")
+    end_date: datetime = Field(default_factory=_next_weekend_end, description="End datetime; defaults to upcoming Sunday 21:00")
     preferences: Preference = Field(default_factory=Preference)
     user_address: Optional[str] = Field(
-        None, description="User origin street address for distance calculations"
+        "Hamburg Hall, 4800 Forbes Ave, Pittsburgh, PA 15213",
+        description="User origin street address for distance calculations (default: Hamburg Hall, CMU)",
     )
     max_distance_miles: Optional[float] = Field(
-        None, description="Maximum distance from origin in miles for included activities"
+        5, description="Maximum distance from origin in miles for included activities (default: 5)"
     )
 
 

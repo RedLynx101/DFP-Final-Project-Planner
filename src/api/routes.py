@@ -21,7 +21,11 @@ def health() -> dict:
     return {"status": "ok"}
 
 
-@router.post("/itinerary", response_model=ItineraryResponse)
+@router.post(
+    "/itinerary",
+    response_model=ItineraryResponse,
+    summary="Build a single itinerary (defaults to upcoming weekend at CMU)",
+)
 def create_itinerary(payload: ItineraryRequest) -> ItineraryResponse:
     return build_itinerary(payload)
 
@@ -42,7 +46,11 @@ def events_this_week() -> dict:
         raise HTTPException(status_code=502, detail=str(exc))
 
 
-@router.post("/itinerary/options", response_model=ItineraryOptionsResponse)
+@router.post(
+    "/itinerary/options",
+    response_model=ItineraryOptionsResponse,
+    summary="Build multiple itinerary options (diversified; defaults prefilled)",
+)
 def create_itinerary_options(payload: ItineraryRequest) -> ItineraryOptionsResponse:
     try:
         return build_itinerary_options(payload)

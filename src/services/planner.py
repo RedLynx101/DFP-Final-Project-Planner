@@ -117,6 +117,9 @@ def _pick_non_overlapping_blocks(
             external_url=item.get("url"),
             source=item.get("source"),
             environment=item.get("environment"),
+            coordinates=item.get("coordinates"),
+            distance_miles=item.get("distance_miles"),
+            travel_time_minutes=item.get("duration_minutes"),
         )
 
     # Morning: breakfast
@@ -139,6 +142,10 @@ def _collect_candidates(
     city: str,
     interests: List[str],
     env_pref: str,
+    start: datetime,
+    end: datetime,
+    origin_coords: Optional[Dict[str, float]] = None,
+    max_distance_miles: Optional[float] = None,
 ) -> Tuple[List[Dict[str, Any]], List[str], Dict[str, int]]:
     warnings: List[str] = []
     sources: Dict[str, int] = {}
@@ -199,10 +206,19 @@ def _collect_candidates(
     except Exception as exc:
         warnings.append(f"yelp_unavailable: {exc}")
 
-    # Ticketmaster events (API)
+    # Ticketmaster events (API) — restricted to requested window and proximity if available
     try:
-        # For MVP, query broadly for date range around now; refined windowing will happen per request
-        tm_payload = fetch_events_ticketmaster(city="Pittsburgh")
+        if origin_coords is not None:
+            tm_payload = fetch_events_ticketmaster(
+                city=None,
+                lat=origin_coords.get("lat"),
+                lon=origin_coords.get("lon"),
+                radius_miles=int(max_distance_miles or 10),
+                start=start,
+                end=end,
+            )
+        else:
+            tm_payload = fetch_events_ticketmaster(city=city.split(",")[0], start=start, end=end)
         for e in tm_payload.get("events", []):
             title = e.get("title") or ""
             details = e.get("details") or ""
@@ -237,8 +253,10 @@ def _collect_candidates(
             if any(i.lower() in text.lower() for i in interests):
                 keep.append(c)
             else:
-                # retain some events even if not matched to keep options
-                keep.append(c)
+                # retain a fraction of non-matching events to preserve variety
+                # simple heuristic: keep every 3rd non-matching event
+                if (len(keep) % 3) == 0:
+                    keep.append(c)
         candidates = keep
 
     return candidates, warnings, sources
@@ -257,40 +275,61 @@ def build_itinerary_options(request: ItineraryRequest) -> ItineraryOptionsRespon
     except Exception as exc:
         warnings.append(f"weather_unavailable: {exc}")
 
+    # Determine origin early to pass into candidate collection for better filtering
+    origin_coords: Optional[Dict[str, float]] = None
+    if request.user_address:
+        origin_coords = geocode_address(request.user_address)
+        if origin_coords is None:
+            origin_coords = _pittsburgh_coords()
+
     candidates, w2, s2 = _collect_candidates(
         city=request.city,
         interests=request.preferences.interests,
         env_pref=request.preferences.environment,
+        start=request.start_date,
+        end=request.end_date,
+        origin_coords=origin_coords,
+        max_distance_miles=request.max_distance_miles,
     )
     warnings.extend(w2)
     for k, v in s2.items():
         used_sources[k] = used_sources.get(k, 0) + v
 
-    # Geocode user origin if provided
-    origin_coords: Optional[Dict[str, float]] = None
-    if request.user_address:
-        origin_coords = geocode_address(request.user_address)
-        if origin_coords is None:
-            # Fallback to Pittsburgh center to avoid breakage
-            origin_coords = _pittsburgh_coords()
+    # origin_coords already computed above
 
     # Attach distances from origin when possible and filter by max distance if requested
     if origin_coords is not None:
-        dests = [c.get("coordinates") for c in candidates]
         # For items without coords, attempt naive geocode by address once
         for c in candidates:
             if not c.get("coordinates") and c.get("address"):
                 gc = geocode_address(c["address"])  # may be None
                 if gc:
                     c["coordinates"] = gc
-        destinations = [c.get("coordinates") or origin_coords for c in candidates]
+
+        # Build destinations while tracking which items truly had coordinates
+        had_coords: list[bool] = []
+        destinations = []
+        for c in candidates:
+            coords = c.get("coordinates")
+            if coords:
+                had_coords.append(True)
+                destinations.append(coords)
+            else:
+                had_coords.append(False)
+                destinations.append(origin_coords)  # placeholder to keep matrix shape
+
         matrix = distance_matrix_miles([origin_coords], destinations)
         if matrix:
             row0 = matrix[0]
             for idx, c in enumerate(candidates):
                 dm = row0[idx]
-                c["distance_miles"] = dm.get("distance_miles")
-                c["duration_minutes"] = dm.get("duration_minutes")
+                # Only assign distances if we had true destination coordinates
+                if had_coords[idx]:
+                    c["distance_miles"] = dm.get("distance_miles")
+                    c["duration_minutes"] = dm.get("duration_minutes")
+                else:
+                    c["distance_miles"] = None
+                    c["duration_minutes"] = None
 
         if request.max_distance_miles is not None:
             def within_limit(item: Dict[str, Any]) -> bool:
@@ -320,17 +359,28 @@ def build_itinerary_options(request: ItineraryRequest) -> ItineraryOptionsRespon
             events_by_day.setdefault("unknown", []).append(c)
 
     # For each option, pick a different featured event when possible
+    global_used_event_titles: set[str] = set()
+    global_used_food_names: set[str] = set()
     for opt_idx in range(3):
         days: List[DayPlan] = []
-        used_titles: set[str] = set()
+        used_titles: set[str] = set()  # per-option events used across days
+        used_foods: set[str] = set()  # per-option foods used across days
         for day_dt in day_dates:
             dn = WEEKDAY_NAMES[day_dt.weekday()]
             day_weather = daily_weather.get(day_dt.date().isoformat())
 
             # Candidate pool for this day
-            day_events = [e for e in events_by_day.get(dn, []) if e.get("title") not in used_titles]
+            day_events = [
+                e
+                for e in events_by_day.get(dn, [])
+                if e.get("title") not in used_titles and e.get("title") not in global_used_event_titles
+            ]
             if not day_events:
-                day_events = [e for e in events_by_day.get("unknown", []) if e.get("title") not in used_titles]
+                day_events = [
+                    e
+                    for e in events_by_day.get("unknown", [])
+                    if e.get("title") not in used_titles and e.get("title") not in global_used_event_titles
+                ]
 
             # Choose candidates to assemble blocks
             # Prefer events closest to origin first if distances available
@@ -341,9 +391,29 @@ def build_itinerary_options(request: ItineraryRequest) -> ItineraryOptionsRespon
                 )
 
             day_events_sorted = sort_by_distance(day_events)
-            food_all = [c for c in candidates if c.get("category") == "food"]
+            food_all = [
+                c
+                for c in candidates
+                if c.get("category") == "food"
+                and c.get("name") not in used_foods
+                and c.get("name") not in global_used_food_names
+            ]
             food_sorted = sort_by_distance(food_all)
-            day_candidates = list(day_events_sorted) + list(food_sorted)
+
+            # Diversify options by rotating the sorted lists per option index
+            if day_events_sorted:
+                ev_off = opt_idx % len(day_events_sorted)
+                rotated_events = day_events_sorted[ev_off:] + day_events_sorted[:ev_off]
+            else:
+                rotated_events = []
+
+            if food_sorted:
+                food_off = opt_idx % len(food_sorted)
+                rotated_food = food_sorted[food_off:] + food_sorted[:food_off]
+            else:
+                rotated_food = []
+
+            day_candidates = list(rotated_events) + list(rotated_food)
             activities = _pick_non_overlapping_blocks(
                 day=day_dt,
                 candidates=day_candidates,
@@ -351,10 +421,12 @@ def build_itinerary_options(request: ItineraryRequest) -> ItineraryOptionsRespon
                 weather_day_info=day_weather,
             )
 
-            # Track used event to diversify options
+            # Track used items to diversify options
             for a in activities:
                 if a.category != "food" and a.name:
                     used_titles.add(a.name)
+                if a.category == "food" and a.name:
+                    used_foods.add(a.name)
 
             days.append(DayPlan(date=day_dt, activities=activities))
 
@@ -373,7 +445,26 @@ def build_itinerary_options(request: ItineraryRequest) -> ItineraryOptionsRespon
             )
         )
 
-    return ItineraryOptionsResponse(options=options, warnings=warnings, used_sources=used_sources)
+        # Update global usage to steer subsequent options away from previously used items
+        for d in days:
+            for a in d.activities:
+                if a.category != "food" and a.name:
+                    global_used_event_titles.add(a.name)
+                if a.category == "food" and a.name:
+                    global_used_food_names.add(a.name)
+
+    # Deduplicate identical options (can occur when data is sparse)
+    unique: List[ItineraryResponse] = []
+    seen_signatures: set[Tuple[Tuple[str, str], ...]] = set()
+    for opt in options:
+        signature: Tuple[Tuple[str, str], ...] = tuple(
+            (a.name or "", a.category or "") for d in opt.days for a in d.activities
+        )
+        if signature not in seen_signatures:
+            seen_signatures.add(signature)
+            unique.append(opt)
+
+    return ItineraryOptionsResponse(options=unique, warnings=warnings, used_sources=used_sources)
 
 
 def build_itinerary(request: ItineraryRequest) -> ItineraryResponse:
