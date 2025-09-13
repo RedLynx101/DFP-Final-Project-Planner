@@ -85,7 +85,9 @@ src/
     yelp_client.py        # Yelp Fusion client (requires API key)
     maps_client.py        # Geocode + distance matrix (Google), haversine fallback
     weather_client.py     # OpenWeather client + suitability scoring
+    classifier.py         # Heuristic indoor/outdoor classification (+ optional OpenAI)
 tests/
+  conftest.py             # Test fixtures and shared config
   README.md               # Tests overview and how to run
   test_smoke.py           # Health + itinerary smoke
   test_planner_options.py # Itinerary options and single-plan compat
@@ -95,6 +97,8 @@ tests/
   test_maps_client.py     # Maps client (haversine + optional geocode)
   test_weather_client.py  # Weather utilities (suitability, mapping)
   test_classifier.py      # Heuristic classifier checks
+  test_api_keys_status.py # Prints which API keys are active (use -s)
+  test_openai_places.py   # Optional external: classifies five places via OpenAI
 config/
   uvicorn.ini
 docs/
