@@ -35,6 +35,8 @@ MAPS_API_KEY=
 
 # Optional — OpenAI (for classifier refinement)
 OPENAI_API_KEY=
+OPENAI_MODEL=gpt-5-nano
+OPENAI_MAX_COMPLETION_TOKENS=500
 ```
 
 ## Recommended testing order
@@ -120,6 +122,8 @@ PY
 5) OpenAI (optional):
 ```powershell
 $env:OPENAI_API_KEY="<YOUR_KEY>"
+${env:OPENAI_MODEL="gpt-5-nano"}
+${env:OPENAI_MAX_COMPLETION_TOKENS="500"}
 python -c "from src.services.classifier import classify_environment as c; print('gym indoor? ->', c('Indoor climbing gym event')); print('park outdoor? ->', c('Park festival with tents'))"
 ```
 
@@ -131,6 +135,8 @@ pytest -q -m external -s tests/test_classifier.py
 OpenAI places classification accuracy (five items) — requires key and external marker:
 ```powershell
 $env:OPENAI_API_KEY="<YOUR_KEY>"
+${env:OPENAI_MODEL="gpt-5-nano"}
+${env:OPENAI_MAX_COMPLETION_TOKENS="500"}
 pytest -q -m external -s tests/test_openai_places.py
 ```
 

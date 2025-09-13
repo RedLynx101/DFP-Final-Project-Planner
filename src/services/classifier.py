@@ -24,6 +24,15 @@ INDOOR_WORDS = {
     "venue",
     "exhibit",
     "exhibition",
+    "arena",
+    "center",
+    "centre",
+    "hall",
+    "gym",
+    "aquarium",
+    "arcade",
+    "bowling",
+    "brewery",
 }
 
 OUTDOOR_WORDS = {
@@ -37,16 +46,29 @@ OUTDOOR_WORDS = {
     "outdoors",
     "hike",
     "walk",
+    "garden",
+    "playground",
+    "plaza",
+    "zoo",
+    "waterfront",
+    "beach",
 }
 
 
 def classify_environment_heuristic(text: str) -> str:
     lowered = text.lower()
-    indoor = any(w in lowered for w in INDOOR_WORDS)
-    outdoor = any(w in lowered for w in OUTDOOR_WORDS)
-    if indoor and not outdoor:
+    # Score by counts to break ties instead of returning unknown when both present
+    indoor_count = sum(lowered.count(w) for w in INDOOR_WORDS)
+    outdoor_count = sum(lowered.count(w) for w in OUTDOOR_WORDS)
+    if indoor_count > outdoor_count:
         return "indoor"
-    if outdoor and not indoor:
+    if outdoor_count > indoor_count:
+        return "outdoor"
+    # As a last resort, look for exact tokens at start/end
+    tokens = set(lowered.replace("-", " ").split())
+    if tokens & INDOOR_WORDS and not (tokens & OUTDOOR_WORDS):
+        return "indoor"
+    if tokens & OUTDOOR_WORDS and not (tokens & INDOOR_WORDS):
         return "outdoor"
     return "unknown"
 
@@ -78,14 +100,14 @@ def classify_environment(text: str) -> str:
         )
         # Ask for a single-word answer; models often follow this reliably.
         resp = client.chat.completions.create(
-            model="gpt-5-nano",
+            model=settings.openai_model,
             messages=[
                 {"role": "system", "content": (
                     "Answer with exactly one word: 'indoor' or 'outdoor'. No punctuation or extra words."
                 )},
                 {"role": "user", "content": user},
             ],
-            max_completion_tokens=100,
+            max_completion_tokens=settings.openai_max_completion_tokens,
         )
         content = (resp.choices[0].message.content or "").strip().lower()
         if content in {"indoor", "outdoor"}:
