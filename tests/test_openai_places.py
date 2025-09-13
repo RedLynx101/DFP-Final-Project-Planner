@@ -74,7 +74,7 @@ def test_openai_places_classification_accuracy():
         pytest.skip(f"openai package not available: {e}")
 
     client = OpenAI(api_key=key)
-    model = "gpt-5-nano"
+    model = os.getenv("OPENAI_MODEL") or "gpt-5-nano"
 
     items = _build_items()
     correct = 0
@@ -83,18 +83,49 @@ def test_openai_places_classification_accuracy():
     for item in items:
         prompt = _make_prompt(item["name"] or "", item.get("description"))
         try:
+            system_msg = (
+                "Answer with exactly one word: 'indoor' or 'outdoor'. No punctuation.\n"
+                "If the place is a museum, gallery, arena, center, hall: indoor.\n"
+                "If the place is a park, trail, garden, playground, market: outdoor.\n"
+            )
+            # Few-shot to steer outputs
+            examples = [
+                {"role": "user", "content": "Classify: Schenley Park"},
+                {"role": "assistant", "content": "outdoor"},
+                {"role": "user", "content": "Classify: Carnegie Museum of Art"},
+                {"role": "assistant", "content": "indoor"},
+            ]
             resp = client.chat.completions.create(
                 model=model,
                 messages=[
-                    {"role": "system", "content": (
-                        "Answer with exactly one word: 'indoor' or 'outdoor'."
-                    )},
+                    {"role": "system", "content": system_msg},
+                    *examples,
                     {"role": "user", "content": (
                         "Classify the following place with exactly one word.\n" + prompt
                     )},
                 ],
                 max_completion_tokens=100,
             )
+            # Debug dump of response structure
+            try:
+                print("OpenAI raw response object:", resp)
+                # Common fields
+                rid = getattr(resp, "id", None)
+                print("response.id:", rid)
+                model_used = getattr(resp, "model", None)
+                print("response.model:", model_used)
+                usage = getattr(resp, "usage", None)
+                print("response.usage:", usage)
+                choices = getattr(resp, "choices", None)
+                print("response.choices:", choices)
+                if choices:
+                    try:
+                        print("first choice finish_reason:", getattr(choices[0], "finish_reason", None))
+                        print("first choice message:", getattr(choices[0], "message", None))
+                    except Exception:
+                        pass
+            except Exception:
+                pass
             content = (resp.choices[0].message.content or "").strip().lower()
             if content not in {"indoor", "outdoor"}:
                 # Heuristic fallback parsing
