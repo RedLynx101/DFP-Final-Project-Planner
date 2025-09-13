@@ -5,29 +5,43 @@
 **Setup Date:** 2025-09-13
 
 ## Overview
-This is a FastAPI backend application that generates Pittsburgh weekend itineraries. The app pulls event highlights from VisitPittsburgh (scraper) and Ticketmaster (API), food options from Yelp, and weather data from OpenWeather. It considers user's address, computes distances/times, filters by max distance, and sequences activities by proximity.
+This is a complete full-stack web application for planning Pittsburgh weekend itineraries. The React frontend provides an interactive, user-friendly interface for discovering and planning Steel City adventures, while the FastAPI backend generates personalized itineraries. The app pulls event highlights from VisitPittsburgh (scraper) and Ticketmaster (API), food options from Yelp, and weather data from OpenWeather. It considers user's address, computes distances/times, filters by max distance, and sequences activities by proximity.
 
 ## Current State
-✅ **FULLY CONFIGURED FOR REPLIT**
-- Python 3.11 environment installed
-- All dependencies installed from requirements.txt
-- FastAPI backend running successfully on port 5000
-- Workflow configured: `uvicorn src.main:app --host 0.0.0.0 --port 5000 --reload --log-level info`
-- Deployment configured for autoscale mode
-- All API endpoints tested and working:
-  - `/api/health` - Health check
-  - `/api/events/this-week` - Pittsburgh events scraper
-  - `/api/itinerary` - Single itinerary generation
-  - `/api/itinerary/options` - Multiple itinerary options
-  - `/api/food/search` - Yelp food search (requires API key)
-  - `/docs` - Swagger UI documentation
+✅ **PRODUCTION-READY FULL-STACK APPLICATION**
+- **Frontend:** React with Vite on port 5000 (user-facing)
+- **Backend:** FastAPI on port 8000 (API services)
+- Python 3.11 and Node.js 20 environments installed
+- All dependencies installed and configured
+- Pittsburgh-themed responsive UI with Steel City colors
+- Interactive features: date pickers, event browsing, itinerary planning
+- CORS configured for cross-origin requests
+- Environment-driven configuration for production deployment
+- Both workflows running successfully with hot reload
+
+## API Endpoints (Backend - Port 8000)
+- `/api/health` - Health check
+- `/api/events/this-week` - Pittsburgh events scraper
+- `/api/itinerary` - Single itinerary generation
+- `/api/itinerary/options` - Multiple itinerary options
+- `/api/food/search` - Yelp food search (requires API key)
+- `/docs` - Swagger UI documentation
+
+## Frontend Features (Port 5000)
+- **Home Page:** Pittsburgh-themed hero, live events preview, navigation
+- **Itinerary Planner:** Interactive form with date picker, preferences, budget selection
+- **Events Browser:** Filterable event cards with search and details
+- **Results Display:** Beautiful timeline view of planned activities
+- **Responsive Design:** Works perfectly on mobile, tablet, and desktop
 
 ## Recent Changes (2025-09-13)
-- Configured for Replit environment with port 5000 binding
-- Set up FastAPI Backend workflow
-- Configured deployment settings for production (autoscale)
-- Verified all endpoints are functional
-- Documentation accessible at `/docs`
+- ✅ Set up complete React frontend with interactive features
+- ✅ Configured backend on port 8000, frontend on port 5000
+- ✅ Added proper CORS configuration with regex patterns
+- ✅ Implemented environment-driven API configuration
+- ✅ Fixed all production readiness issues
+- ✅ Configured autoscale deployment for production
+- ✅ Added comprehensive error handling and validation
 
 ## Project Architecture
 ```
