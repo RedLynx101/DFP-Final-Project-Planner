@@ -2,7 +2,7 @@
 Title: OpenAI Place Classification Accuracy Test
 Team: Purple Turtles — Gwen Li, Aadya Agarwal, Emma Peng, Noah Hicks
 Date: 2025-09-12
-Summary: Uses OpenAI (gpt-5-nano-2025-08-07) to classify five places as indoor or outdoor and prints success rate.
+Summary: Uses OpenAI (gpt-5-nano) to classify five places as indoor or outdoor and prints success rate.
 Disclaimer: This file includes AI-assisted content (GPT-5); reviewed and approved by the Purple Turtles team.
 """
 
@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import os
 from typing import Dict, List, Optional, Tuple
+import json
 
 import pytest
 
@@ -73,7 +74,7 @@ def test_openai_places_classification_accuracy():
         pytest.skip(f"openai package not available: {e}")
 
     client = OpenAI(api_key=key)
-    model = "gpt-5-nano-2025-08-07"
+    model = "gpt-5-nano"
 
     items = _build_items()
     correct = 0
@@ -84,15 +85,26 @@ def test_openai_places_classification_accuracy():
         try:
             resp = client.chat.completions.create(
                 model=model,
-                messages=[{"role": "user", "content": prompt}],
-                temperature=0,
-                max_tokens=3,
+                messages=[
+                    {"role": "system", "content": (
+                        "Answer with exactly one word: 'indoor' or 'outdoor'."
+                    )},
+                    {"role": "user", "content": (
+                        "Classify the following place with exactly one word.\n" + prompt
+                    )},
+                ],
+                max_completion_tokens=2,
             )
-            content = resp.choices[0].message.content
+            content = (resp.choices[0].message.content or "").strip().lower()
+            if content not in {"indoor", "outdoor"}:
+                # Heuristic fallback parsing
+                content = _parse_label(content)
         except Exception as e:
             msg = str(e).lower()
             if "model" in msg or "not found" in msg:
-                pytest.skip("OpenAI model 'gpt-5-nano-2025-08-07' unavailable; configure access or adjust model name")
+                # Give full error message
+                print(f"OpenAI error: {e}")
+                pytest.skip("OpenAI model 'gpt-5-nano' unavailable; configure access or adjust model name")
             raise
 
         label = _parse_label(content)
@@ -108,6 +120,6 @@ def test_openai_places_classification_accuracy():
     print(f"OpenAI classification success rate: {correct}/{len(items)} = {rate:.0%}")
 
     # Do not assert on accuracy; only ensure outputs are parseable labels
-    assert all(label in {"indoor", "outdoor", "unknown"} for _, _, label in outputs)
+    assert all(label in {"indoor", "outdoor"} for _, _, label in outputs)
 
 

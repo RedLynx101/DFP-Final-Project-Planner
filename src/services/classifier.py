@@ -9,6 +9,7 @@ Disclaimer: This file includes AI-assisted content (GPT-5); reviewed and approve
 from __future__ import annotations
 
 from typing import Optional
+import json
 
 from ..core.config import get_settings
 
@@ -66,21 +67,31 @@ def classify_environment(text: str) -> str:
         from openai import OpenAI
 
         client = OpenAI(api_key=key)
-        prompt = (
-            "Classify the environment for this event as strictly 'indoor' or 'outdoor'. "
-            "If truly unclear, return 'unknown'. Text: " + text[:800]
+        system = (
+            "You are an environment classifier. Return only a JSON object with a 'label' "
+            "field that is either 'indoor' or 'outdoor'. Choose the most plausible one; "
+            "do not output 'unknown'. Hints: museum, gallery, arena, center, hall => indoor; "
+            "park, trail, garden, playground, outdoor market => outdoor."
         )
+        user = (
+            "Classify the following text. Return JSON only. Text: " + text[:800]
+        )
+        # Ask for a single-word answer; models often follow this reliably.
         resp = client.chat.completions.create(
-            model="gpt-5-nano-2025-08-07",
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0,
-            max_tokens=3,
+            model="gpt-5-nano",
+            messages=[
+                {"role": "system", "content": (
+                    "Answer with exactly one word: 'indoor' or 'outdoor'. No punctuation or extra words."
+                )},
+                {"role": "user", "content": user},
+            ],
+            max_completion_tokens=2,
         )
-        content = resp.choices[0].message.content.strip().lower()
-        if "indoor" in content:
-            return "indoor"
-        if "outdoor" in content:
-            return "outdoor"
+        content = (resp.choices[0].message.content or "").strip().lower()
+        if content in {"indoor", "outdoor"}:
+            return content
+
+        # Final fallback: keep unknown if model didn't comply
         return "unknown"
     except Exception:
         return "unknown"
