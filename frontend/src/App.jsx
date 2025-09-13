@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import Header from './components/Header';
 import Home from './pages/Home';
 import ItineraryPlanner from './pages/ItineraryPlanner';
+import Events from './pages/Events';
 import About from './pages/About';
 import { apiService } from './services/api';
 
@@ -54,6 +55,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/planner" element={<ItineraryPlanner />} />
+            <Route path="/events" element={<Events />} />
             <Route path="/about" element={<About />} />
           </Routes>
         </main>
