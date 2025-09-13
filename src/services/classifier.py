@@ -85,7 +85,7 @@ def classify_environment(text: str) -> str:
                 )},
                 {"role": "user", "content": user},
             ],
-            max_completion_tokens=2,
+            max_completion_tokens=100,
         )
         content = (resp.choices[0].message.content or "").strip().lower()
         if content in {"indoor", "outdoor"}:
