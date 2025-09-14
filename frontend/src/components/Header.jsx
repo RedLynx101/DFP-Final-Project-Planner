@@ -9,91 +9,117 @@ const Header = ({ isBackendHealthy }) => {
   };
 
   return (
-    <header className="bg-white shadow-lg">
+    <header className="bg-white shadow-lg sticky top-0 z-50">
       <div className="container mx-auto px-4">
-        <div className="flex justify-between items-center py-4">
-          {/* Logo and Title */}
-          <Link to="/" className="flex items-center space-x-3 hover:opacity-80 transition-opacity">
+        {/* Main Header Row */}
+        <div className="flex justify-between items-center py-3 sm:py-4">
+          {/* Logo and Title - Mobile Optimized */}
+          <Link to="/" className="flex items-center space-x-2 sm:space-x-3 hover:opacity-80 transition-opacity group">
             <img 
               src={logo} 
               alt="Pittsburgh Weekend Planner Logo" 
-              className="w-10 h-10 rounded-lg object-cover"
+              className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg object-cover shadow-sm group-hover:shadow-md transition-shadow"
             />
-            <div>
-              <h1 className="text-2xl font-bold text-gray-800">Pittsburgh Weekend Planner</h1>
-              <p className="text-sm text-gray-600">Discover the Steel City</p>
+            <div className="min-w-0">
+              <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800 truncate leading-tight">
+                Pittsburgh Weekend Planner
+              </h1>
+              <p className="text-xs sm:text-sm text-gray-600 leading-tight hidden sm:block">
+                Discover the Steel City
+              </p>
+              {/* Mobile tagline */}
+              <p className="text-xs text-gray-500 leading-tight sm:hidden">
+                Steel City Adventures
+              </p>
             </div>
           </Link>
 
-          {/* Navigation */}
-          <nav className="hidden md:flex space-x-8">
+          {/* Desktop Navigation */}
+          <nav className="hidden lg:flex items-center space-x-6">
             <Link
               to="/"
-              className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                 isActive('/') 
-                  ? 'bg-blue-100 text-blue-700' 
-                  : 'text-gray-700 hover:text-blue-600 hover:bg-gray-100'
+                  ? 'bg-yellow-100 text-yellow-800 shadow-sm' 
+                  : 'text-gray-700 hover:text-yellow-600 hover:bg-yellow-50'
               }`}
             >
-              Home
+              🏠 Home
             </Link>
             <Link
               to="/planner"
-              className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                 isActive('/planner') 
-                  ? 'bg-blue-100 text-blue-700' 
-                  : 'text-gray-700 hover:text-blue-600 hover:bg-gray-100'
+                  ? 'bg-yellow-100 text-yellow-800 shadow-sm' 
+                  : 'text-gray-700 hover:text-yellow-600 hover:bg-yellow-50'
               }`}
             >
-              Plan Itinerary
+              📅 Plan Itinerary
             </Link>
             <Link
               to="/about"
-              className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                 isActive('/about') 
-                  ? 'bg-blue-100 text-blue-700' 
-                  : 'text-gray-700 hover:text-blue-600 hover:bg-gray-100'
+                  ? 'bg-yellow-100 text-yellow-800 shadow-sm' 
+                  : 'text-gray-700 hover:text-yellow-600 hover:bg-yellow-50'
               }`}
             >
-              About
+              ℹ️ About
             </Link>
           </nav>
 
-          {/* Backend Status Indicator */}
-          <div className="flex items-center space-x-2">
-            <div className={`w-3 h-3 rounded-full ${isBackendHealthy ? 'bg-green-500' : 'bg-red-500'}`}></div>
-            <span className="text-sm text-gray-600">
-              {isBackendHealthy ? 'API Connected' : 'API Offline'}
-            </span>
+          {/* Status & Mobile Menu Button */}
+          <div className="flex items-center space-x-3">
+            {/* Backend Status - Improved Mobile */}
+            <div className="flex items-center space-x-1 sm:space-x-2">
+              <div className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full ${isBackendHealthy ? 'bg-green-500' : 'bg-red-500'} animate-pulse`}></div>
+              <span className="text-xs sm:text-sm text-gray-600 font-medium">
+                <span className="hidden sm:inline">
+                  {isBackendHealthy ? 'API Connected' : 'API Offline'}
+                </span>
+                <span className="sm:hidden">
+                  {isBackendHealthy ? '✓' : '✗'}
+                </span>
+              </span>
+            </div>
           </div>
         </div>
 
-        {/* Mobile Navigation */}
-        <div className="md:hidden pb-4">
-          <nav className="flex space-x-4">
+        {/* Mobile Navigation - Enhanced */}
+        <div className="lg:hidden border-t border-gray-100">
+          <nav className="flex items-center justify-center py-3 space-x-1">
             <Link
               to="/"
-              className={`px-3 py-2 rounded-md text-sm font-medium ${
-                isActive('/') ? 'bg-blue-100 text-blue-700' : 'text-gray-700'
+              className={`flex-1 flex flex-col items-center px-2 py-3 rounded-lg text-xs font-medium transition-all duration-200 ${
+                isActive('/') 
+                  ? 'bg-yellow-100 text-yellow-800 shadow-sm' 
+                  : 'text-gray-600 hover:text-yellow-600 hover:bg-yellow-50'
               }`}
             >
-              Home
+              <span className="text-lg mb-1">🏠</span>
+              <span>Home</span>
             </Link>
             <Link
               to="/planner"
-              className={`px-3 py-2 rounded-md text-sm font-medium ${
-                isActive('/planner') ? 'bg-blue-100 text-blue-700' : 'text-gray-700'
+              className={`flex-1 flex flex-col items-center px-2 py-3 rounded-lg text-xs font-medium transition-all duration-200 ${
+                isActive('/planner') 
+                  ? 'bg-yellow-100 text-yellow-800 shadow-sm' 
+                  : 'text-gray-600 hover:text-yellow-600 hover:bg-yellow-50'
               }`}
             >
-              Plan
+              <span className="text-lg mb-1">📅</span>
+              <span>Plan</span>
             </Link>
             <Link
               to="/about"
-              className={`px-3 py-2 rounded-md text-sm font-medium ${
-                isActive('/about') ? 'bg-blue-100 text-blue-700' : 'text-gray-700'
+              className={`flex-1 flex flex-col items-center px-2 py-3 rounded-lg text-xs font-medium transition-all duration-200 ${
+                isActive('/about') 
+                  ? 'bg-yellow-100 text-yellow-800 shadow-sm' 
+                  : 'text-gray-600 hover:text-yellow-600 hover:bg-yellow-50'
               }`}
             >
-              About
+              <span className="text-lg mb-1">ℹ️</span>
+              <span>About</span>
             </Link>
           </nav>
         </div>

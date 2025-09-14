@@ -47,15 +47,19 @@ export const apiService = {
     return response.data;
   },
 
-  // Create itinerary
+  // Create itinerary (with extended timeout for long processing)
   createItinerary: async (payload) => {
-    const response = await api.post('/api/itinerary', payload);
+    const response = await api.post('/api/itinerary', payload, {
+      timeout: 180000 // 3 minutes timeout for itinerary generation
+    });
     return response.data;
   },
 
-  // Create itinerary options
+  // Create itinerary options (with extended timeout for long processing)
   createItineraryOptions: async (payload) => {
-    const response = await api.post('/api/itinerary/options', payload);
+    const response = await api.post('/api/itinerary/options', payload, {
+      timeout: 180000 // 3 minutes timeout for itinerary generation
+    });
     return response.data;
   },
 
