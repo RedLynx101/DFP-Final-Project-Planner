@@ -63,5 +63,5 @@ externalPort = 3000
 
 [deployment]
 deploymentTarget = "autoscale"
-run = ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port"]
+run = ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "5000"]
 build = ["bash", "-c", "echo 'Installing backend dependencies...' && pip install -r requirements.txt && echo 'Verifying backend imports...' && python -c 'import fastapi, uvicorn; print(\"Backend dependencies OK\")' && echo 'Starting frontend build...' && cd frontend && echo 'Verifying package.json exists:' && test -f package.json && echo 'package.json found' && npm install --production=false && npm run build && echo 'Verifying build output:' && test -d dist && test -f dist/index.html && ls -la dist/ && echo 'Full build completed successfully!'"]
