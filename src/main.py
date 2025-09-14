@@ -101,11 +101,16 @@ def setup_static_files(app: FastAPI) -> None:
             async def serve_spa(full_path: str):
                 # Skip API routes, docs, and health checks completely
                 if (full_path.startswith("api/") or 
-                    full_path in ["docs", "redoc", "openapi.json", "health"] or
-                    full_path == ""):
+                    full_path in ["docs", "redoc", "openapi.json", "health"]):
                     raise HTTPException(status_code=404, detail="Not found")
                 
-                # Only serve index.html for valid frontend routes
+                # Serve static files from root (like favicon.ico, favicon.png)
+                if full_path in ["favicon.ico", "favicon.png"]:
+                    favicon_path = os.path.join(frontend_dist, full_path)
+                    if os.path.exists(favicon_path):
+                        return FileResponse(favicon_path)
+                
+                # Serve index.html for root and SPA routes
                 index_file = os.path.join(frontend_dist, "index.html")
                 if os.path.exists(index_file):
                     return FileResponse(index_file)
