@@ -57,6 +57,16 @@ const Header = ({ isBackendHealthy }) => {
               📅 Plan Itinerary
             </Link>
             <Link
+              to="/events"
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                isActive('/events') 
+                  ? 'bg-yellow-100 text-yellow-800 shadow-sm' 
+                  : 'text-gray-700 hover:text-yellow-600 hover:bg-yellow-50'
+              }`}
+            >
+              🎭 Events
+            </Link>
+            <Link
               to="/about"
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                 isActive('/about') 
@@ -109,6 +119,17 @@ const Header = ({ isBackendHealthy }) => {
             >
               <span className="text-lg mb-1">📅</span>
               <span>Plan</span>
+            </Link>
+            <Link
+              to="/events"
+              className={`flex-1 flex flex-col items-center px-2 py-3 rounded-lg text-xs font-medium transition-all duration-200 ${
+                isActive('/events') 
+                  ? 'bg-yellow-100 text-yellow-800 shadow-sm' 
+                  : 'text-gray-600 hover:text-yellow-600 hover:bg-yellow-50'
+              }`}
+            >
+              <span className="text-lg mb-1">🎭</span>
+              <span>Events</span>
             </Link>
             <Link
               to="/about"

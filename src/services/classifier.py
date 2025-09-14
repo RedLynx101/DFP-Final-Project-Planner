@@ -8,8 +8,9 @@ Disclaimer: This file includes AI-assisted content (GPT-5); reviewed and approve
 
 from __future__ import annotations
 
-from typing import Optional
+from typing import Optional, List, Dict, Any
 import json
+import asyncio
 
 from ..core.config import get_settings
 
@@ -117,4 +118,86 @@ def classify_environment(text: str) -> str:
         return "unknown"
     except Exception:
         return "unknown"
+
+
+async def classify_environment_async(text: str) -> str:
+    """Async version of classify_environment for concurrent processing."""
+    # Heuristic first
+    guess = classify_environment_heuristic(text)
+    if guess != "unknown":
+        return guess
+
+    # Optional OpenAI refinement
+    settings = get_settings()
+    key = settings.openai_api_key
+    if not key or key.startswith("changeme"):
+        return "unknown"
+
+    try:
+        from openai import AsyncOpenAI
+
+        client = AsyncOpenAI(api_key=key)
+        user = (
+            "Classify the following text. Return JSON only. Text: " + text[:800]
+        )
+        # Ask for a single-word answer; models often follow this reliably.
+        resp = await client.chat.completions.create(
+            model=settings.openai_model,
+            messages=[
+                {"role": "system", "content": (
+                    "Answer with exactly one word: 'indoor' or 'outdoor'. No punctuation or extra words."
+                )},
+                {"role": "user", "content": user},
+            ],
+            max_completion_tokens=settings.openai_max_completion_tokens,
+        )
+        content = (resp.choices[0].message.content or "").strip().lower()
+        if content in {"indoor", "outdoor"}:
+            return content
+
+        # Final fallback: keep unknown if model didn't comply
+        return "unknown"
+    except Exception:
+        return "unknown"
+
+
+async def classify_environments_batch(texts: List[str]) -> List[str]:
+    """Classify multiple texts concurrently using async processing."""
+    tasks = [classify_environment_async(text) for text in texts]
+    return await asyncio.gather(*tasks)
+
+
+def classify_environments_batch_sync(texts: List[str]) -> List[str]:
+    """Synchronous wrapper for batch classification that runs async code."""
+    try:
+        # Try to use existing event loop
+        loop = asyncio.get_event_loop()
+        if loop.is_running():
+            # If we're already in an async context, we need to create a new loop
+            import threading
+            from typing import List as ListType, Optional as OptionalType
+            result: ListType[OptionalType[List[str]]] = [None]
+            exception: ListType[OptionalType[Exception]] = [None]
+            
+            def run_async():
+                try:
+                    new_loop = asyncio.new_event_loop()
+                    asyncio.set_event_loop(new_loop)
+                    result[0] = new_loop.run_until_complete(classify_environments_batch(texts))
+                    new_loop.close()
+                except Exception as e:
+                    exception[0] = e
+            
+            thread = threading.Thread(target=run_async)
+            thread.start()
+            thread.join()
+            
+            if exception[0]:
+                raise exception[0]
+            return result[0] or []
+        else:
+            return loop.run_until_complete(classify_environments_batch(texts))
+    except RuntimeError:
+        # No event loop exists, create one
+        return asyncio.run(classify_environments_batch(texts))
 

@@ -6,7 +6,6 @@ const Events = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedEnvironment, setSelectedEnvironment] = useState('all');
   const [sortBy, setSortBy] = useState('date');
   const [selectedEvent, setSelectedEvent] = useState(null);
 
@@ -32,11 +31,7 @@ const Events = () => {
       const matchesSearch = event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            (event.details && event.details.toLowerCase().includes(searchTerm.toLowerCase()));
       
-      const matchesEnvironment = selectedEnvironment === 'all' || 
-                                event.environment === selectedEnvironment ||
-                                (selectedEnvironment === 'unknown' && !event.environment);
-      
-      return matchesSearch && matchesEnvironment;
+      return matchesSearch;
     })
     .sort((a, b) => {
       switch (sortBy) {
@@ -98,30 +93,7 @@ const Events = () => {
             </div>
           </div>
 
-          {/* Environment Filter */}
-          <div className="flex flex-wrap gap-2">
-            {[
-              { value: 'all', label: 'All Events', icon: '🎯' },
-              { value: 'indoor', label: 'Indoor', icon: '🏢' },
-              { value: 'outdoor', label: 'Outdoor', icon: '🌞' },
-              { value: 'unknown', label: 'Mixed', icon: '🎭' }
-            ].map(env => (
-              <button
-                key={env.value}
-                onClick={() => setSelectedEnvironment(env.value)}
-                className={`
-                  flex items-center px-4 py-2 rounded-lg font-medium transition-all duration-300
-                  ${selectedEnvironment === env.value
-                    ? 'bg-yellow-500 text-white shadow-lg'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }
-                `}
-              >
-                <span className="mr-2">{env.icon}</span>
-                {env.label}
-              </button>
-            ))}
-          </div>
+          {/* Removed Environment Filter as requested */}
 
           {/* Sort */}
           <select

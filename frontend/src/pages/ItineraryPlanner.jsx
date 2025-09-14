@@ -439,10 +439,28 @@ const ItineraryPlanner = () => {
                 <div className="flex items-center justify-between mb-4">
                   <h4 className="text-2xl font-bold">{itinerary.title}</h4>
                   <div className="flex items-center space-x-4">
-                    <button className="bg-white bg-opacity-20 hover:bg-opacity-30 px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                    <button 
+                      onClick={() => {
+                        const url = window.location.href;
+                        if (navigator.share) {
+                          navigator.share({
+                            title: itinerary.title,
+                            text: itinerary.summary,
+                            url: url
+                          });
+                        } else {
+                          navigator.clipboard.writeText(`${itinerary.title}\n\n${itinerary.summary}\n\nView at: ${url}`);
+                          alert('Itinerary details copied to clipboard!');
+                        }
+                      }}
+                      className="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-md"
+                    >
                       📤 Share
                     </button>
-                    <button className="bg-white bg-opacity-20 hover:bg-opacity-30 px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                    <button 
+                      onClick={() => window.print()}
+                      className="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-md"
+                    >
                       🖨️ Print
                     </button>
                   </div>

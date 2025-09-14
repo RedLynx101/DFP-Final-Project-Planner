@@ -4,7 +4,7 @@ const DatePicker = ({ startDate, endDate, onDateChange, className = "" }) => {
   const [selectedStartDate, setSelectedStartDate] = useState(startDate);
   const [selectedEndDate, setSelectedEndDate] = useState(endDate);
   const [currentMonth, setCurrentMonth] = useState(new Date());
-  const [isSelectingEnd, setIsSelectingEnd] = useState(false);
+  const [selectMode, setSelectMode] = useState('start'); // 'start' or 'end'
 
   useEffect(() => {
     setSelectedStartDate(startDate);
@@ -19,11 +19,11 @@ const DatePicker = ({ startDate, endDate, onDateChange, className = "" }) => {
     
     const saturday = new Date(today);
     saturday.setDate(today.getDate() + daysUntilSaturday);
-    saturday.setHours(9, 0, 0, 0);
+    saturday.setHours(10, 0, 0, 0);
     
     const sunday = new Date(saturday);
     sunday.setDate(saturday.getDate() + 1);
-    sunday.setHours(21, 0, 0, 0);
+    sunday.setHours(22, 0, 0, 0);
     
     return { saturday, sunday };
   };
@@ -36,18 +36,30 @@ const DatePicker = ({ startDate, endDate, onDateChange, className = "" }) => {
   const handleDateClick = (date) => {
     const clickedDate = new Date(date);
     
-    if (!isSelectingEnd && (!selectedStartDate || clickedDate < new Date(selectedStartDate))) {
-      // Set start date
-      clickedDate.setHours(9, 0, 0, 0);
+    if (selectMode === 'start') {
+      // Set start date with 10 AM default
+      clickedDate.setHours(10, 0, 0, 0);
       setSelectedStartDate(clickedDate);
-      setIsSelectingEnd(true);
+      setSelectMode('end');
       onDateChange(formatDateForInput(clickedDate), selectedEndDate ? formatDateForInput(selectedEndDate) : '');
     } else {
-      // Set end date
-      clickedDate.setHours(21, 0, 0, 0);
+      // Set end date with 10 PM default  
+      clickedDate.setHours(22, 0, 0, 0);
       setSelectedEndDate(clickedDate);
-      setIsSelectingEnd(false);
+      setSelectMode('start');
       onDateChange(selectedStartDate ? formatDateForInput(selectedStartDate) : '', formatDateForInput(clickedDate));
+    }
+  };
+
+  const handleManualDateChange = (field, value) => {
+    if (field === 'start') {
+      const newDate = value ? new Date(value) : null;
+      setSelectedStartDate(newDate);
+      onDateChange(value, selectedEndDate ? formatDateForInput(selectedEndDate) : '');
+    } else {
+      const newDate = value ? new Date(value) : null;
+      setSelectedEndDate(newDate);
+      onDateChange(selectedStartDate ? formatDateForInput(selectedStartDate) : '', value);
     }
   };
 
@@ -137,8 +149,34 @@ const DatePicker = ({ startDate, endDate, onDateChange, className = "" }) => {
       <div className="mb-6">
         <h3 className="text-xl font-bold text-gray-800 mb-2">Select Your Dates</h3>
         <p className="text-sm text-gray-600">
-          {isSelectingEnd ? 'Now select your end date' : 'Choose your start date, then end date'}
+          {selectMode === 'start' ? 'Choose your start date' : 'Now choose your end date'}
         </p>
+      </div>
+
+      {/* Manual Date Input Fields */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            📅 Start Date & Time
+          </label>
+          <input
+            type="datetime-local"
+            value={selectedStartDate ? formatDateForInput(selectedStartDate) : ''}
+            onChange={(e) => handleManualDateChange('start', e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            📅 End Date & Time
+          </label>
+          <input
+            type="datetime-local"
+            value={selectedEndDate ? formatDateForInput(selectedEndDate) : ''}
+            onChange={(e) => handleManualDateChange('end', e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+          />
+        </div>
       </div>
 
       {/* Quick Select Buttons */}

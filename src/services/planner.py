@@ -23,7 +23,7 @@ from ..models.itinerary import (
 )
 from .visitpgh_scraper import fetch_this_week_events
 from .yelp_client import search_food
-from .classifier import classify_environment
+from .classifier import classify_environment, classify_environments_batch_sync
 from .weather_client import fetch_forecast, map_forecast_to_days
 from .maps_client import geocode_address, distance_matrix_miles
 from .ticketmaster_client import fetch_events_ticketmaster
@@ -151,6 +151,10 @@ def _collect_candidates(
     sources: Dict[str, int] = {}
     candidates: List[Dict[str, Any]] = []
 
+    # Collect all events first, then classify them concurrently for speed
+    event_candidates = []
+    classification_texts = []
+    
     # VisitPgh events (web-scraped)
     try:
         events_payload = fetch_this_week_events()
@@ -158,23 +162,72 @@ def _collect_candidates(
             title = e.get("title") or ""
             details = e.get("details") or ""
             url = e.get("url")
-            env = classify_environment(f"{title} {details}")
             day_name = _parse_day_from_text(f"{title} {details}")
-            candidates.append(
-                {
-                    "title": title,
-                    "category": "event",
-                    "type": "event",
-                    "notes": details,
-                    "url": url,
-                    "source": "visitpgh",
-                    "environment": env,
-                    "day_name": day_name,
-                }
-            )
+            event_candidate = {
+                "title": title,
+                "category": "event",
+                "type": "event",
+                "notes": details,
+                "url": url,
+                "source": "visitpgh",
+                "day_name": day_name,
+            }
+            event_candidates.append(event_candidate)
+            classification_texts.append(f"{title} {details}")
         sources["visitpgh"] = len(events_payload.get("events", []))
     except Exception as exc:
         warnings.append(f"visitpgh_unavailable: {exc}")
+
+    # Ticketmaster events (API) — restricted to requested window and proximity if available
+    try:
+        if origin_coords is not None:
+            tm_payload = fetch_events_ticketmaster(
+                city=None,
+                lat=origin_coords.get("lat"),
+                lon=origin_coords.get("lon"),
+                radius_miles=int(max_distance_miles or 10),
+                start=start,
+                end=end,
+            )
+        else:
+            tm_payload = fetch_events_ticketmaster(city=city.split(",")[0], start=start, end=end)
+        for e in tm_payload.get("events", []):
+            title = e.get("title") or ""
+            details = e.get("details") or ""
+            url = e.get("url")
+            day_name = _weekday_from_iso_datetime(e.get("start_datetime"))
+            event_candidate = {
+                "title": title,
+                "category": "event",
+                "type": "event",
+                "notes": details,
+                "url": url,
+                "source": "ticketmaster",
+                "day_name": day_name,
+                "coordinates": e.get("coordinates"),
+            }
+            event_candidates.append(event_candidate)
+            classification_texts.append(f"{title} {details}")
+        sources["ticketmaster"] = len(tm_payload.get("events", []))
+    except Exception as exc:
+        warnings.append(f"ticketmaster_unavailable: {exc}")
+
+    # Classify all events concurrently (much faster!)
+    if classification_texts:
+        try:
+            environments = classify_environments_batch_sync(classification_texts)
+            for i, env in enumerate(environments):
+                event_candidates[i]["environment"] = env
+        except Exception as exc:
+            warnings.append(f"classification_batch_failed: {exc}")
+            # Fallback to sequential classification
+            for candidate in event_candidates:
+                title = candidate.get("title") or ""
+                notes = candidate.get("notes") or ""
+                candidate["environment"] = classify_environment(f"{title} {notes}")
+
+    # Add classified events to candidates
+    candidates.extend(event_candidates)
 
     # Yelp food
     try:
@@ -205,42 +258,6 @@ def _collect_candidates(
             )
     except Exception as exc:
         warnings.append(f"yelp_unavailable: {exc}")
-
-    # Ticketmaster events (API) — restricted to requested window and proximity if available
-    try:
-        if origin_coords is not None:
-            tm_payload = fetch_events_ticketmaster(
-                city=None,
-                lat=origin_coords.get("lat"),
-                lon=origin_coords.get("lon"),
-                radius_miles=int(max_distance_miles or 10),
-                start=start,
-                end=end,
-            )
-        else:
-            tm_payload = fetch_events_ticketmaster(city=city.split(",")[0], start=start, end=end)
-        for e in tm_payload.get("events", []):
-            title = e.get("title") or ""
-            details = e.get("details") or ""
-            url = e.get("url")
-            env = classify_environment(f"{title} {details}")
-            day_name = _weekday_from_iso_datetime(e.get("start_datetime"))
-            candidates.append(
-                {
-                    "title": title,
-                    "category": "event",
-                    "type": "event",
-                    "notes": details,
-                    "url": url,
-                    "source": "ticketmaster",
-                    "environment": env,
-                    "day_name": day_name,
-                    "coordinates": e.get("coordinates"),
-                }
-            )
-        sources["ticketmaster"] = len(tm_payload.get("events", []))
-    except Exception as exc:
-        warnings.append(f"ticketmaster_unavailable: {exc}")
 
     # Filter by interests loosely if provided (keep broad for MVP)
     if interests:
@@ -356,7 +373,9 @@ def build_itinerary_options(request: ItineraryRequest) -> ItineraryOptionsRespon
             events_by_day[dn].append(c)
         elif c.get("category") != "food":
             # Unknown day: allow as fallback for any day
-            events_by_day.setdefault("unknown", []).append(c)
+            if "unknown" not in events_by_day:
+                events_by_day["unknown"] = []
+            events_by_day["unknown"].append(c)
 
     # For each option, pick a different featured event when possible
     global_used_event_titles: set[str] = set()
@@ -490,6 +509,10 @@ def build_itinerary(request: ItineraryRequest) -> ItineraryResponse:
                         category="walk",
                         notes="Fallback due to unavailable data sources.",
                         source="fallback",
+                        environment="outdoor",
+                        coordinates=None,
+                        distance_miles=None,
+                        travel_time_minutes=None,
                     )
                 ],
             )
