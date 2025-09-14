@@ -1,4 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
+import logo from '../assets/logo.png';
 
 const Header = ({ isBackendHealthy }) => {
   const location = useLocation();
@@ -12,15 +13,17 @@ const Header = ({ isBackendHealthy }) => {
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center py-4">
           {/* Logo and Title */}
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-xl">🏛️</span>
-            </div>
+          <Link to="/" className="flex items-center space-x-3 hover:opacity-80 transition-opacity">
+            <img 
+              src={logo} 
+              alt="Pittsburgh Weekend Planner Logo" 
+              className="w-10 h-10 rounded-lg object-cover"
+            />
             <div>
               <h1 className="text-2xl font-bold text-gray-800">Pittsburgh Weekend Planner</h1>
               <p className="text-sm text-gray-600">Discover the Steel City</p>
             </div>
-          </div>
+          </Link>
 
           {/* Navigation */}
           <nav className="hidden md:flex space-x-8">
