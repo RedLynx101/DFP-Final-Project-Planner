@@ -5,23 +5,18 @@ const getBackendUrl = () => {
   // Check if we're in production mode
   const isProduction = import.meta.env.MODE === 'production' || import.meta.env.PROD;
   
-  // In production, VITE_API_BASE_URL is mandatory
-  if (isProduction) {
-    if (!import.meta.env.VITE_API_BASE_URL) {
-      throw new Error(
-        'VITE_API_BASE_URL is required in production. ' +
-        'Please set this environment variable to your backend API URL.'
-      );
-    }
-    return import.meta.env.VITE_API_BASE_URL;
-  }
-  
-  // In development, prefer environment variable, fallback to localhost
+  // If VITE_API_BASE_URL is explicitly set, use it (for custom deployments)
   if (import.meta.env.VITE_API_BASE_URL) {
     return import.meta.env.VITE_API_BASE_URL;
   }
   
-  // Development fallback only
+  // In production without explicit API URL, use relative URLs (same-origin deployment)
+  if (isProduction) {
+    // When frontend and backend are served from the same origin (current deployment)
+    return '';  // Relative URLs will work since FastAPI serves both frontend and backend
+  }
+  
+  // Development fallback to localhost backend
   return 'http://localhost:8000';
 };
 

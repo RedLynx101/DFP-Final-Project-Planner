@@ -19,7 +19,11 @@ import os
 def create_app() -> FastAPI:
     configure_logging()
     settings = get_settings()
-    app = FastAPI(title=settings.app_name)
+    app = FastAPI(
+        title="Pittsburgh Weekend Planner API",
+        description="API for planning amazing weekend itineraries in Pittsburgh, PA. Discover events, restaurants, and create personalized Steel City adventures.",
+        version="1.0.0"
+    )
     
     # Configure CORS with environment-based origins
     cors_origins = settings.cors_origins.split(",")

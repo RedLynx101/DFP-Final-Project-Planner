@@ -16,14 +16,7 @@ function App() {
     // Check backend health on app load
     const checkBackendHealth = async () => {
       try {
-        // Check for API configuration errors first
-        const isProduction = import.meta.env.MODE === 'production' || import.meta.env.PROD;
-        if (isProduction && !import.meta.env.VITE_API_BASE_URL) {
-          setConfigError('VITE_API_BASE_URL is required in production mode');
-          setIsBackendHealthy(false);
-          setHealthCheckLoading(false);
-          return;
-        }
+        // No configuration check needed - API service handles URL determination
 
         await apiService.health();
         setIsBackendHealthy(true);
