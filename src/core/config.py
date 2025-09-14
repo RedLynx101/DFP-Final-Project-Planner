@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     env: str = Field("development", validation_alias="ENV")
     debug: bool = Field(True, validation_alias="DEBUG")
     log_level: str = Field("INFO", validation_alias="LOG_LEVEL")
-    port: int = Field(8000, validation_alias="PORT")
+    port: int = Field(5000, validation_alias="PORT")
 
     openai_api_key: str = Field("changeme-openai-key", validation_alias="OPENAI_API_KEY")
     openai_model: str = Field("gpt-5-nano", validation_alias="OPENAI_MODEL")
@@ -35,7 +35,7 @@ class Settings(BaseSettings):
     
     # CORS configuration for production-ready deployments
     cors_origins: str = Field(
-        "http://localhost:5000,http://127.0.0.1:5000,https://*.replit.dev,https://*.repl.co",
+        "http://localhost:5000,http://127.0.0.1:5000,https://*.replit.dev,https://*.repl.co,http://0.0.0.0:5000",
         validation_alias="CORS_ORIGINS"
     )
 

@@ -15,43 +15,27 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "React Frontend"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
 args = "FastAPI Backend"
-
-[[workflows.workflow]]
-name = "React Frontend"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "cd frontend && npm run dev"
-waitForPort = 5000
-
-[workflows.workflow.metadata]
-outputType = "webview"
 
 [[workflows.workflow]]
 name = "FastAPI Backend"
 author = "agent"
 
+[workflows.workflow.metadata]
+outputType = "webview"
+
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload --log-level info"
-waitForPort = 8000
-
-[workflows.workflow.metadata]
-outputType = "console"
+args = "uvicorn src.main:app --host 0.0.0.0 --port 5000 --reload --log-level info"
+waitForPort = 5000
 
 [[ports]]
 localPort = 5000
 externalPort = 80
 
 [[ports]]
-localPort = 8000
-externalPort = 8000
+localPort = 33033
+externalPort = 3002
 
 [[ports]]
 localPort = 33711
@@ -60,10 +44,6 @@ externalPort = 3001
 [[ports]]
 localPort = 45297
 externalPort = 3000
-
-[[ports]]
-localPort = 45423
-externalPort = 3002
 
 [deployment]
 deploymentTarget = "autoscale"

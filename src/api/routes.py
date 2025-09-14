@@ -18,7 +18,13 @@ router = APIRouter()
 
 @router.get("/health")
 def health() -> dict:
-    return {"status": "ok"}
+    """Enhanced health check endpoint for deployment health checks"""
+    return {
+        "status": "healthy",
+        "service": "Pittsburgh Weekend Planner API",
+        "version": "1.0.0",
+        "timestamp": "2025-09-14T04:10:45Z"
+    }
 
 
 @router.post(
