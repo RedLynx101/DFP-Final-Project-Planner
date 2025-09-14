@@ -4,8 +4,6 @@ import { apiService } from '../services/api';
 const ItineraryPlanner = () => {
   const [formData, setFormData] = useState({
     city: 'Pittsburgh, PA',
-    start_date: '',
-    end_date: '',
     user_address: 'Hamburg Hall, 4800 Forbes Ave, Pittsburgh, PA 15213',
     max_distance_miles: 5,
     preferences: {
@@ -20,23 +18,12 @@ const ItineraryPlanner = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Set default dates to upcoming weekend
+  // Remove start_date and end_date from form data since backend will use defaults
   useEffect(() => {
-    const now = new Date();
-    const daysUntilSat = (6 - now.getDay()) % 7;
-    const saturday = new Date(now);
-    saturday.setDate(now.getDate() + daysUntilSat);
-    saturday.setHours(9, 0, 0, 0);
-    
-    const sunday = new Date(saturday);
-    sunday.setDate(saturday.getDate() + 1);
-    sunday.setHours(21, 0, 0, 0);
-
-    setFormData(prev => ({
-      ...prev,
-      start_date: saturday.toISOString().slice(0, 16),
-      end_date: sunday.toISOString().slice(0, 16)
-    }));
+    setFormData(prev => {
+      const { start_date, end_date, ...rest } = prev;
+      return rest;
+    });
   }, []);
 
   const handleInputChange = (e) => {
@@ -70,12 +57,6 @@ const ItineraryPlanner = () => {
     }));
   };
 
-  const handleDateChange = (name, value) => {
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -127,111 +108,16 @@ const ItineraryPlanner = () => {
               />
             </div>
 
-            {/* Date & Time Selection */}
-            <div className="space-y-4">
-              <h4 className="text-lg font-medium text-gray-800 mb-4">📅 Select Your Dates & Times</h4>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Start Date & Time
-                  </label>
-                  <input
-                    type="datetime-local"
-                    name="start_date"
-                    value={formData.start_date}
-                    onChange={(e) => handleDateChange('start_date', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    End Date & Time
-                  </label>
-                  <input
-                    type="datetime-local"
-                    name="end_date"
-                    value={formData.end_date}
-                    onChange={(e) => handleDateChange('end_date', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
-                    required
-                  />
-                </div>
+            {/* Weekend Planning Info */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="flex items-center mb-2">
+                <span className="text-2xl mr-2">🗓️</span>
+                <h4 className="text-lg font-medium text-blue-800">Weekend Planning</h4>
               </div>
-
-              {/* Quick Select Buttons */}
-              <div className="grid grid-cols-3 gap-2 mt-4">
-                <button
-                  type="button"
-                  onClick={() => {
-                    const now = new Date();
-                    const daysUntilSat = (6 - now.getDay()) % 7;
-                    const saturday = new Date(now);
-                    saturday.setDate(now.getDate() + daysUntilSat);
-                    saturday.setHours(10, 0, 0, 0);
-                    
-                    const sunday = new Date(saturday);
-                    sunday.setDate(saturday.getDate() + 1);
-                    sunday.setHours(22, 0, 0, 0);
-
-                    setFormData(prev => ({
-                      ...prev,
-                      start_date: saturday.toISOString().slice(0, 16),
-                      end_date: sunday.toISOString().slice(0, 16)
-                    }));
-                  }}
-                  className="bg-yellow-100 hover:bg-yellow-200 text-yellow-800 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-                >
-                  🗓️ This Weekend
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const now = new Date();
-                    const daysUntilSat = (6 - now.getDay()) % 7;
-                    const saturday = new Date(now);
-                    saturday.setDate(now.getDate() + daysUntilSat + 7);
-                    saturday.setHours(10, 0, 0, 0);
-                    
-                    const sunday = new Date(saturday);
-                    sunday.setDate(saturday.getDate() + 1);
-                    sunday.setHours(22, 0, 0, 0);
-
-                    setFormData(prev => ({
-                      ...prev,
-                      start_date: saturday.toISOString().slice(0, 16),
-                      end_date: sunday.toISOString().slice(0, 16)
-                    }));
-                  }}
-                  className="bg-blue-100 hover:bg-blue-200 text-blue-800 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-                >
-                  📅 Next Weekend
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const now = new Date();
-                    const daysUntilFri = (5 - now.getDay() + 7) % 7;
-                    const friday = new Date(now);
-                    friday.setDate(now.getDate() + daysUntilFri);
-                    friday.setHours(18, 0, 0, 0);
-                    
-                    const sunday = new Date(friday);
-                    sunday.setDate(friday.getDate() + 2);
-                    sunday.setHours(22, 0, 0, 0);
-
-                    setFormData(prev => ({
-                      ...prev,
-                      start_date: friday.toISOString().slice(0, 16),
-                      end_date: sunday.toISOString().slice(0, 16)
-                    }));
-                  }}
-                  className="bg-purple-100 hover:bg-purple-200 text-purple-800 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-                >
-                  🌙 Friday Night
-                </button>
-              </div>
+              <p className="text-blue-700 text-sm">
+                Your itinerary will be automatically planned for the upcoming weekend (Saturday 10am - Sunday 10pm).
+                Perfect for exploring Pittsburgh's best spots!
+              </p>
             </div>
 
             {/* Budget Level */}
