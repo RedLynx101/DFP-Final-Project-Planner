@@ -7,7 +7,7 @@ Disclaimer: This file includes AI-assisted content (GPT-5); reviewed and approve
 """
 
 from datetime import datetime, time, timedelta
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 from pydantic import BaseModel, Field, ConfigDict
 
 
@@ -65,6 +65,12 @@ class Activity(BaseModel):
     )
     travel_time_minutes: Optional[int] = Field(
         None, description="Estimated travel time from previous stop or origin"
+    )
+    weather_info: Optional[Dict[str, Any]] = Field(
+        None, description="Weather forecast data for the activity day: temp_avg_f, wind_avg_mph, precip_prob_avg, suitability"
+    )
+    weather_icon: Optional[str] = Field(
+        None, description="Weather condition icon/emoji based on forecast"
     )
 
 

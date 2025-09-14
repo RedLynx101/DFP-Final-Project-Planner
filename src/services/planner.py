@@ -40,6 +40,87 @@ WEEKDAY_NAMES = [
 ]
 
 
+def _estimate_activity_cost(item: Dict[str, Any], budget_level: str = "medium") -> Optional[float]:
+    """Estimate cost for an activity based on type, source, and budget preferences."""
+    category = item.get("category", "").lower()
+    source = item.get("source", "")
+    
+    # Yelp food price mapping - based on Yelp's price levels
+    if source == "yelp" and item.get("price"):
+        price_level = item.get("price", "")
+        price_map = {
+            "$": (8, 15),      # Casual/fast food
+            "$$": (15, 30),    # Mid-range
+            "$$$": (30, 60),   # Upscale
+            "$$$$": (60, 120), # High-end
+        }
+        if price_level in price_map:
+            low, high = price_map[price_level]
+            # Adjust based on budget preference
+            if budget_level == "low":
+                return low
+            elif budget_level == "high":
+                return high
+            else:  # medium
+                return (low + high) / 2
+    
+    # Default estimates by category and budget level
+    estimates = {
+        "food": {"low": 12, "medium": 25, "high": 45},
+        "event": {"low": 0, "medium": 15, "high": 35},
+        "museum": {"low": 10, "medium": 18, "high": 25},
+        "activity": {"low": 5, "medium": 20, "high": 40},
+        "entertainment": {"low": 8, "medium": 25, "high": 50},
+        "shopping": {"low": 15, "medium": 50, "high": 100},
+        "outdoor": {"low": 0, "medium": 10, "high": 25},
+        "park": {"low": 0, "medium": 5, "high": 15},
+    }
+    
+    # Look for category match
+    for key in estimates:
+        if key in category:
+            return estimates[key].get(budget_level, estimates[key]["medium"])
+    
+    # Default fallback
+    return estimates["activity"].get(budget_level, estimates["activity"]["medium"])
+
+
+def _get_weather_icon(weather_info: Optional[Dict[str, Any]]) -> str:
+    """Convert weather information to appropriate emoji icon."""
+    if not weather_info:
+        return "🌤️"  # Default partly cloudy
+    
+    temp_f = weather_info.get("temp_avg_f", 70)
+    precip_prob = weather_info.get("precip_prob_avg", 0)
+    suitability = weather_info.get("suitability", 0.5)
+    
+    # High precipitation probability
+    if precip_prob > 0.6:
+        return "🌧️"  # Rain
+    elif precip_prob > 0.3:
+        return "⛅"   # Partly cloudy with chance of rain
+    
+    # Temperature-based icons
+    if temp_f < 40:
+        return "🥶"   # Very cold
+    elif temp_f < 60:
+        return "🌤️"  # Cool but pleasant
+    elif temp_f > 85:
+        return "🔥"   # Hot
+    elif temp_f > 75:
+        return "☀️"   # Warm and sunny
+    else:
+        return "😊"   # Perfect weather
+    
+    # Suitability-based fallback
+    if suitability > 0.7:
+        return "☀️"   # Great weather
+    elif suitability > 0.4:
+        return "🌤️"  # Decent weather
+    else:
+        return "⛅"   # Poor weather
+
+
 def _daterange(start: datetime, end: datetime) -> Iterable[datetime]:
     cur = start
     while cur.date() <= end.date():
@@ -79,6 +160,7 @@ def _pick_non_overlapping_blocks(
     candidates: List[Dict[str, Any]],
     env_preference: str,
     weather_day_info: Optional[Dict[str, Any]],
+    budget_level: str = "medium",
 ) -> List[Activity]:
     blocks: List[Tuple[str, Tuple[int, int]]] = [
         ("morning", (9, 11)),
@@ -106,13 +188,20 @@ def _pick_non_overlapping_blocks(
         # If outdoor is poor, prefer indoor events and record via notes
         events = [c for c in candidates if (c.get("environment") == "indoor" or c.get("environment") is None)]
 
-    def to_activity(item: Dict[str, Any], start_h: int, end_h: int) -> Activity:
+    def to_activity(item: Dict[str, Any], start_h: int, end_h: int, budget_level: str = "medium") -> Activity:
+        # Calculate cost estimate
+        cost_estimate = _estimate_activity_cost(item, budget_level)
+        
+        # Get weather icon if weather info is available
+        weather_icon = _get_weather_icon(weather_day_info)
+        
         return Activity(
             name=item.get("name") or item.get("title") or "Activity",
             category=item.get("category") or item.get("type") or "activity",
             address=item.get("address"),
             start_time=datetime(day.year, day.month, day.day, start_h, 0).time(),
             end_time=datetime(day.year, day.month, day.day, end_h, 0).time(),
+            cost_estimate=cost_estimate,
             notes=item.get("notes"),
             external_url=item.get("url"),
             source=item.get("source"),
@@ -120,20 +209,22 @@ def _pick_non_overlapping_blocks(
             coordinates=item.get("coordinates"),
             distance_miles=item.get("distance_miles"),
             travel_time_minutes=item.get("duration_minutes"),
+            weather_info=weather_day_info,
+            weather_icon=weather_icon,
         )
 
     # Morning: breakfast
     if food:
-        chosen.append(to_activity(food[0], *blocks[0][1]))
+        chosen.append(to_activity(food[0], *blocks[0][1], budget_level))
     # Afternoon: event
     if events:
-        chosen.append(to_activity(events[0], *blocks[1][1]))
+        chosen.append(to_activity(events[0], *blocks[1][1], budget_level))
     # Evening: dinner
     if len(food) > 1:
-        chosen.append(to_activity(food[1], *blocks[2][1]))
+        chosen.append(to_activity(food[1], *blocks[2][1], budget_level))
     elif food:
         # reuse breakfast place for dinner only if no alternative
-        chosen.append(to_activity(food[0], *blocks[2][1]))
+        chosen.append(to_activity(food[0], *blocks[2][1], budget_level))
 
     return chosen
 
@@ -387,6 +478,12 @@ def build_itinerary_options(request: ItineraryRequest) -> ItineraryOptionsRespon
         for day_dt in day_dates:
             dn = WEEKDAY_NAMES[day_dt.weekday()]
             day_weather = daily_weather.get(day_dt.date().isoformat())
+            # Fallback: if exact date not available, use the closest available weather data
+            if not day_weather and daily_weather:
+                available_dates = list(daily_weather.keys())
+                if available_dates:
+                    # Use the last available date as a fallback (most relevant for future dates)
+                    day_weather = daily_weather[available_dates[-1]]
 
             # Candidate pool for this day
             day_events = [
@@ -438,6 +535,7 @@ def build_itinerary_options(request: ItineraryRequest) -> ItineraryOptionsRespon
                 candidates=day_candidates,
                 env_preference=request.preferences.environment,
                 weather_day_info=day_weather,
+                budget_level=request.preferences.budget_level,
             )
 
             # Track used items to diversify options

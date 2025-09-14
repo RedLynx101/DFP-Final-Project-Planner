@@ -655,14 +655,28 @@ const ItineraryPlanner = () => {
                                     )}
                                   </div>
                                 </div>
-                                {activity.cost_estimate && (
-                                  <div className="text-right">
-                                    <div className="text-2xl font-bold text-green-600">
-                                      ${activity.cost_estimate}
+                                <div className="text-right flex flex-col space-y-2">
+                                  {/* Weather Info */}
+                                  {activity.weather_icon && (
+                                    <div className="flex items-center justify-end space-x-1">
+                                      <span className="text-2xl">{activity.weather_icon}</span>
+                                      {activity.weather_info?.temp_avg_f && (
+                                        <span className="text-sm font-medium text-gray-700">
+                                          {Math.round(activity.weather_info.temp_avg_f)}°F
+                                        </span>
+                                      )}
                                     </div>
-                                    <div className="text-xs text-gray-500">estimated</div>
-                                  </div>
-                                )}
+                                  )}
+                                  {/* Cost Estimate */}
+                                  {activity.cost_estimate && (
+                                    <div>
+                                      <div className="text-2xl font-bold text-green-600">
+                                        ${Math.round(activity.cost_estimate)}
+                                      </div>
+                                      <div className="text-xs text-gray-500">estimated</div>
+                                    </div>
+                                  )}
+                                </div>
                               </div>
                               
                               {activity.address && (
@@ -686,6 +700,32 @@ const ItineraryPlanner = () => {
                                     {activity.travel_time_minutes && (
                                       <span className="ml-4 text-gray-500">
                                         ({activity.travel_time_minutes}min travel)
+                                      </span>
+                                    )}
+                                  </span>
+                                </div>
+                              )}
+                              
+                              {/* Weather Details */}
+                              {activity.weather_info && (
+                                <div className="flex items-center text-sm text-gray-600 mb-3">
+                                  <span className="mr-2">{activity.weather_icon || '🌤️'}</span>
+                                  <span>
+                                    {activity.weather_info.temp_avg_f && `${Math.round(activity.weather_info.temp_avg_f)}°F`}
+                                    {activity.weather_info.precip_prob_avg && activity.weather_info.precip_prob_avg > 0.1 && (
+                                      <span className="ml-2 text-blue-600">
+                                        {Math.round(activity.weather_info.precip_prob_avg * 100)}% chance of rain
+                                      </span>
+                                    )}
+                                    {activity.weather_info.suitability && (
+                                      <span className={`ml-4 px-2 py-1 rounded-full text-xs ${
+                                        activity.weather_info.suitability > 0.7 ? 'bg-green-100 text-green-700' :
+                                        activity.weather_info.suitability > 0.4 ? 'bg-yellow-100 text-yellow-700' :
+                                        'bg-red-100 text-red-700'
+                                      }`}>
+                                        {activity.weather_info.suitability > 0.7 ? 'Great weather' :
+                                         activity.weather_info.suitability > 0.4 ? 'Fair weather' :
+                                         'Poor weather'}
                                       </span>
                                     )}
                                   </span>
