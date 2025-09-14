@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { apiService } from '../services/api';
-import DatePicker from '../components/DatePicker';
 
 const ItineraryPlanner = () => {
   const [formData, setFormData] = useState({
@@ -71,11 +70,10 @@ const ItineraryPlanner = () => {
     }));
   };
 
-  const handleDateChange = (startDate, endDate) => {
+  const handleDateChange = (name, value) => {
     setFormData(prev => ({
       ...prev,
-      start_date: startDate,
-      end_date: endDate
+      [name]: value
     }));
   };
 
@@ -129,12 +127,112 @@ const ItineraryPlanner = () => {
               />
             </div>
 
-            {/* Interactive Date Picker */}
-            <DatePicker
-              startDate={formData.start_date ? new Date(formData.start_date) : null}
-              endDate={formData.end_date ? new Date(formData.end_date) : null}
-              onDateChange={handleDateChange}
-            />
+            {/* Date & Time Selection */}
+            <div className="space-y-4">
+              <h4 className="text-lg font-medium text-gray-800 mb-4">📅 Select Your Dates & Times</h4>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Start Date & Time
+                  </label>
+                  <input
+                    type="datetime-local"
+                    name="start_date"
+                    value={formData.start_date}
+                    onChange={(e) => handleDateChange('start_date', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    End Date & Time
+                  </label>
+                  <input
+                    type="datetime-local"
+                    name="end_date"
+                    value={formData.end_date}
+                    onChange={(e) => handleDateChange('end_date', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Quick Select Buttons */}
+              <div className="grid grid-cols-3 gap-2 mt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const now = new Date();
+                    const daysUntilSat = (6 - now.getDay()) % 7;
+                    const saturday = new Date(now);
+                    saturday.setDate(now.getDate() + daysUntilSat);
+                    saturday.setHours(10, 0, 0, 0);
+                    
+                    const sunday = new Date(saturday);
+                    sunday.setDate(saturday.getDate() + 1);
+                    sunday.setHours(22, 0, 0, 0);
+
+                    setFormData(prev => ({
+                      ...prev,
+                      start_date: saturday.toISOString().slice(0, 16),
+                      end_date: sunday.toISOString().slice(0, 16)
+                    }));
+                  }}
+                  className="bg-yellow-100 hover:bg-yellow-200 text-yellow-800 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                >
+                  🗓️ This Weekend
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const now = new Date();
+                    const daysUntilSat = (6 - now.getDay()) % 7;
+                    const saturday = new Date(now);
+                    saturday.setDate(now.getDate() + daysUntilSat + 7);
+                    saturday.setHours(10, 0, 0, 0);
+                    
+                    const sunday = new Date(saturday);
+                    sunday.setDate(saturday.getDate() + 1);
+                    sunday.setHours(22, 0, 0, 0);
+
+                    setFormData(prev => ({
+                      ...prev,
+                      start_date: saturday.toISOString().slice(0, 16),
+                      end_date: sunday.toISOString().slice(0, 16)
+                    }));
+                  }}
+                  className="bg-blue-100 hover:bg-blue-200 text-blue-800 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                >
+                  📅 Next Weekend
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const now = new Date();
+                    const daysUntilFri = (5 - now.getDay() + 7) % 7;
+                    const friday = new Date(now);
+                    friday.setDate(now.getDate() + daysUntilFri);
+                    friday.setHours(18, 0, 0, 0);
+                    
+                    const sunday = new Date(friday);
+                    sunday.setDate(friday.getDate() + 2);
+                    sunday.setHours(22, 0, 0, 0);
+
+                    setFormData(prev => ({
+                      ...prev,
+                      start_date: friday.toISOString().slice(0, 16),
+                      end_date: sunday.toISOString().slice(0, 16)
+                    }));
+                  }}
+                  className="bg-purple-100 hover:bg-purple-200 text-purple-800 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                >
+                  🌙 Friday Night
+                </button>
+              </div>
+            </div>
 
             {/* Budget Level */}
             <div>
