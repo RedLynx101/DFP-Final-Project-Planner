@@ -23,9 +23,24 @@ Disclaimer: This repository includes AI-assisted content (GPT-5); reviewed and a
 python -m venv .venv
 .venv\Scripts\Activate.ps1
 ```
-3) Install packages:
+3) Install packages (pick one):
 ```powershell
 pip install -r requirements.txt
+```
+
+Manual install (alternative):
+```powershell
+pip install fastapi==0.112.2
+pip install "uvicorn[standard]==0.30.6"
+pip install pydantic==2.9.2
+pip install pydantic-settings==2.6.1
+pip install python-dotenv==1.0.1
+pip install httpx==0.27.2
+pip install anyio==4.4.0
+pip install beautifulsoup4==4.12.3
+pip install lxml==5.3.0   # optional; falls back to html.parser if absent
+pip install python-dateutil==2.9.0.post0
+pip install openai==1.51.2
 ```
 
 ## Configure (optional)
