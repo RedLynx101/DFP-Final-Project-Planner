@@ -1,6 +1,7 @@
 """
 Title: Maps Client (Geocoding + Distance) — Flat Layout
 Team: Purple Turtles — Gwen Li, Aadya Agarwal, Emma Peng, Noah Hicks
+CMU IDs: nhicks, aadyaaga, yepeng, wendyl2
 Date: 2025-09-15
 Summary: Provides geocoding of addresses to lat/lon and distance estimation. Uses
         Google Maps if configured; otherwise falls back to simple haversine.

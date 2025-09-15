@@ -1,6 +1,7 @@
 """
 Title: FastAPI Application Entry (Flat Layout)
 Team: Purple Turtles — Gwen Li, Aadya Agarwal, Emma Peng, Noah Hicks
+CMU IDs: nhicks, aadyaaga, yepeng, wendyl2
 Date: 2025-09-15
 Summary: Creates the FastAPI app, configures logging, and includes routes. Flat layout.
 Disclaimer: This file includes AI-assisted content (GPT-5); reviewed and approved by the Purple Turtles team.

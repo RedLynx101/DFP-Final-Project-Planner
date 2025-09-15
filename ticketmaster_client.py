@@ -1,6 +1,7 @@
 """
 Title: Ticketmaster Discovery API Client (Flat Layout)
 Team: Purple Turtles — Gwen Li, Aadya Agarwal, Emma Peng, Noah Hicks
+CMU IDs: nhicks, aadyaaga, yepeng, wendyl2
 Date: 2025-09-15
 Summary: Lightweight client for Ticketmaster Discovery API to fetch events by city
          and date range for Pittsburgh planning.

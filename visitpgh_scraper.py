@@ -1,6 +1,7 @@
 """
 Title: VisitPittsburgh Scraper (Flat Layout)
 Team: Purple Turtles — Gwen Li, Aadya Agarwal, Emma Peng, Noah Hicks
+CMU IDs: nhicks, aadyaaga, yepeng, wendyl2
 Date: 2025-09-15
 Summary: Scrapes 'This Week in Pittsburgh' events from VisitPittsburgh.
 Disclaimer: This file includes AI-assisted content (GPT-5); reviewed and approved by the Purple Turtles team.

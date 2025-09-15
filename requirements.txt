@@ -1,3 +1,10 @@
+# Title: Python Requirements
+# Team: Purple Turtles — Gwen Li, Aadya Agarwal, Emma Peng, Noah Hicks
+# CMU IDs: nhicks, aadyaaga, yepeng, wendyl2
+# Date: 2025-09-15
+# Summary: Package versions for Weekender backend.
+# Disclaimer: This repository includes AI-assisted content (GPT-5); reviewed and approved by the Purple Turtles team.
+
 fastapi==0.112.2
 uvicorn[standard]==0.30.6
 pydantic==2.9.2

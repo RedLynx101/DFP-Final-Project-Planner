@@ -1,6 +1,7 @@
 """
 Title: Environment Classifier (Heuristic + Optional OpenAI) — Flat Layout
 Team: Purple Turtles — Gwen Li, Aadya Agarwal, Emma Peng, Noah Hicks
+CMU IDs: nhicks, aadyaaga, yepeng, wendyl2
 Date: 2025-09-15
 Summary: Classifies items as indoor/outdoor/either using keywords with optional OpenAI refinement.
 Disclaimer: This file includes AI-assisted content (GPT-5); reviewed and approved by the Purple Turtles team.
