@@ -1,7 +1,7 @@
 """
-Title: Planner Service
+Title: Planner Service (Flat Layout)
 Team: Purple Turtles — Gwen Li, Aadya Agarwal, Emma Peng, Noah Hicks
-Date: 2025-09-11
+Date: 2025-09-15
 Summary: Builds itineraries from real data sources (VisitPgh, Yelp, Weather) with fallbacks.
 Disclaimer: This file includes AI-assisted content (GPT-5); reviewed and approved by the Purple Turtles team.
 """
@@ -15,19 +15,19 @@ from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 from dateutil import parser as date_parser
 
-from ..models.itinerary import (
+from itinerary import (
     ItineraryRequest,
     ItineraryResponse,
     ItineraryOptionsResponse,
     DayPlan,
     Activity,
 )
-from .visitpgh_scraper import fetch_this_week_events
-from .yelp_client import search_food
-from .classifier import classify_environment, classify_environment_batch
-from .weather_client import fetch_forecast, map_forecast_to_days
-from .maps_client import geocode_address, distance_matrix_miles
-from .ticketmaster_client import fetch_events_ticketmaster
+from visitpgh_scraper import fetch_this_week_events
+from yelp_client import search_food
+from classifier import classify_environment, classify_environment_batch
+from weather_client import fetch_forecast, map_forecast_to_days
+from maps_client import geocode_address, distance_matrix_miles
+from ticketmaster_client import fetch_events_ticketmaster
 
 
 WEEKDAY_NAMES = [
@@ -479,14 +479,13 @@ def build_itinerary(request: ItineraryRequest) -> ItineraryResponse:
     """Backward-compatible single-plan builder.
 
     Uses the options builder and returns the first option if available,
-    otherwise falls back to a very small placeholder for compatibility with
-    existing tests.
+    otherwise falls back to a very small placeholder for compatibility.
     """
     options = build_itinerary_options(request)
     if options.options:
         return options.options[0]
 
-    # Final fallback: minimal non-empty itinerary to avoid breaking existing smoke test
+    # Final fallback: minimal non-empty itinerary
     days: List[DayPlan] = []
     for dt in _daterange(request.start_date, request.end_date):
         days.append(
@@ -509,3 +508,5 @@ def build_itinerary(request: ItineraryRequest) -> ItineraryResponse:
         warnings=options.warnings,
         sources=options.used_sources,
     )
+
+

@@ -1,7 +1,7 @@
 """
-Title: Ticketmaster Discovery API Client
+Title: Ticketmaster Discovery API Client (Flat Layout)
 Team: Purple Turtles — Gwen Li, Aadya Agarwal, Emma Peng, Noah Hicks
-Date: 2025-09-12
+Date: 2025-09-15
 Summary: Lightweight client for Ticketmaster Discovery API to fetch events by city
          and date range for Pittsburgh planning.
 Disclaimer: This file includes AI-assisted content (GPT-5); reviewed and approved by the Purple Turtles team.
@@ -14,7 +14,7 @@ from typing import Any, Dict, List, Optional
 
 import httpx
 
-from ..core.config import get_settings
+from config import get_settings
 
 
 TM_BASE_URL = "https://app.ticketmaster.com/discovery/v2/events.json"

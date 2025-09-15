@@ -1,16 +1,16 @@
 """
-Title: API Routes
+Title: API Routes (Flat Layout)
 Team: Purple Turtles — Gwen Li, Aadya Agarwal, Emma Peng, Noah Hicks
-Date: 2025-09-11
-Summary: FastAPI routes for health and itinerary preview.
+Date: 2025-09-15
+Summary: FastAPI routes for health and itinerary preview. Flat layout.
 Disclaimer: This file includes AI-assisted content (GPT-5); reviewed and approved by the Purple Turtles team.
 """
 
 from fastapi import APIRouter, HTTPException
-from ..models.itinerary import ItineraryRequest, ItineraryResponse, ItineraryOptionsResponse
-from ..services.planner import build_itinerary, build_itinerary_options
-from ..services.yelp_client import search_food
-from ..services.visitpgh_scraper import fetch_this_week_events
+from itinerary import ItineraryRequest, ItineraryResponse, ItineraryOptionsResponse
+from planner import build_itinerary, build_itinerary_options
+from yelp_client import search_food
+from visitpgh_scraper import fetch_this_week_events
 
 
 router = APIRouter()
@@ -56,4 +56,5 @@ def create_itinerary_options(payload: ItineraryRequest) -> ItineraryOptionsRespo
         return build_itinerary_options(payload)
     except Exception as exc:  # pragma: no cover
         raise HTTPException(status_code=500, detail=str(exc))
+
 

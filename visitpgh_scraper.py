@@ -1,7 +1,7 @@
 """
-Title: VisitPittsburgh Scraper
+Title: VisitPittsburgh Scraper (Flat Layout)
 Team: Purple Turtles — Gwen Li, Aadya Agarwal, Emma Peng, Noah Hicks
-Date: 2025-09-11
+Date: 2025-09-15
 Summary: Scrapes 'This Week in Pittsburgh' events from VisitPittsburgh.
 Disclaimer: This file includes AI-assisted content (GPT-5); reviewed and approved by the Purple Turtles team.
 """
@@ -24,7 +24,11 @@ def fetch_this_week_events() -> Dict[str, Any]:
         resp.raise_for_status()
         html = resp.text
 
-    soup = BeautifulSoup(html, "lxml")
+    # Prefer lxml if available; fall back to built-in html.parser for portability
+    try:
+        soup = BeautifulSoup(html, "lxml")
+    except Exception:
+        soup = BeautifulSoup(html, "html.parser")
 
     events: List[Dict[str, Any]] = []
 

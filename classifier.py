@@ -1,7 +1,7 @@
 """
-Title: Environment Classifier (Heuristic + Optional OpenAI)
+Title: Environment Classifier (Heuristic + Optional OpenAI) — Flat Layout
 Team: Purple Turtles — Gwen Li, Aadya Agarwal, Emma Peng, Noah Hicks
-Date: 2025-09-11
+Date: 2025-09-15
 Summary: Classifies items as indoor/outdoor/either using keywords with optional OpenAI refinement.
 Disclaimer: This file includes AI-assisted content (GPT-5); reviewed and approved by the Purple Turtles team.
 """
@@ -12,7 +12,7 @@ from typing import Optional, Iterable, List, Dict
 import asyncio
 import json
 
-from ..core.config import get_settings
+from config import get_settings
 
 
 INDOOR_WORDS = {
@@ -90,22 +90,19 @@ def classify_environment(text: str) -> str:
         from openai import OpenAI
 
         client = OpenAI(api_key=key)
-        system = (
-            "You are an environment classifier. Return only a JSON object with a 'label' "
-            "field that is either 'indoor' or 'outdoor'. Choose the most plausible one; "
-            "do not output 'unknown'. Hints: museum, gallery, arena, center, hall => indoor; "
-            "park, trail, garden, playground, outdoor market => outdoor."
-        )
         user = (
-            "Classify the following text. Return JSON only. Text: " + text[:800]
+            "Classify the following text. Return only one word: indoor or outdoor. Text: "
+            + text[:800]
         )
-        # Ask for a single-word answer; models often follow this reliably.
         resp = client.chat.completions.create(
             model=settings.openai_model,
             messages=[
-                {"role": "system", "content": (
-                    "Answer with exactly one word: 'indoor' or 'outdoor'. No punctuation or extra words."
-                )},
+                {
+                    "role": "system",
+                    "content": (
+                        "Answer with exactly one word: 'indoor' or 'outdoor'. No punctuation or extra words."
+                    ),
+                },
                 {"role": "user", "content": user},
             ],
             max_completion_tokens=settings.openai_max_completion_tokens,
@@ -174,12 +171,19 @@ async def classify_environment_batch(texts: Iterable[str]) -> List[str]:
                 resp = await client.chat.completions.create(
                     model=settings.openai_model,
                     messages=[
-                        {"role": "system", "content": (
-                            "Answer with exactly one word: 'indoor' or 'outdoor'. No punctuation or extra words."
-                        )},
-                        {"role": "user", "content": (
-                            "Classify the following text. Return only one word. Text: " + prompt_text
-                        )},
+                        {
+                            "role": "system",
+                            "content": (
+                                "Answer with exactly one word: 'indoor' or 'outdoor'. No punctuation or extra words."
+                            ),
+                        },
+                        {
+                            "role": "user",
+                            "content": (
+                                "Classify the following text. Return only one word. Text: "
+                                + prompt_text
+                            ),
+                        },
                     ],
                     max_completion_tokens=settings.openai_max_completion_tokens,
                 )
@@ -207,3 +211,5 @@ async def classify_environment_batch(texts: Iterable[str]) -> List[str]:
             labels[i] = label
 
     return labels
+
+

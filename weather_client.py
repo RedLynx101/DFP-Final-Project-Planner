@@ -1,7 +1,7 @@
 """
-Title: Weather Client Service
+Title: Weather Client Service (Flat Layout)
 Team: Purple Turtles — Gwen Li, Aadya Agarwal, Emma Peng, Noah Hicks
-Date: 2025-09-11
+Date: 2025-09-15
 Summary: Fetches weather forecast and provides an outdoor suitability score.
 Disclaimer: This file includes AI-assisted content (GPT-5); reviewed and approved by the Purple Turtles team.
 """
@@ -13,7 +13,7 @@ from typing import Any, Dict, List, Optional
 
 import httpx
 
-from ..core.config import get_settings
+from config import get_settings
 
 
 OPENWEATHER_URL = "https://api.openweathermap.org/data/2.5/forecast"  # 3-hourly 5-day
@@ -125,4 +125,5 @@ def map_forecast_to_days(forecast: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
         }
 
     return summary
+
 

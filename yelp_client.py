@@ -1,14 +1,14 @@
 """
-Title: Yelp Client Service
+Title: Yelp Client Service (Flat Layout)
 Team: Purple Turtles — Gwen Li, Aadya Agarwal, Emma Peng, Noah Hicks
-Date: 2025-09-11
+Date: 2025-09-15
 Summary: Lightweight Yelp Fusion API client for food business search.
 Disclaimer: This file includes AI-assisted content (GPT-5); reviewed and approved by the Purple Turtles team.
 """
 
 from typing import Any, Dict, List, Optional
 import httpx
-from ..core.config import get_settings
+from config import get_settings
 
 
 YELP_BASE_URL = "https://api.yelp.com/v3"

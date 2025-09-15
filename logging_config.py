@@ -1,14 +1,14 @@
 """
-Title: Logging Configuration
+Title: Logging Configuration (Flat Layout)
 Team: Purple Turtles — Gwen Li, Aadya Agarwal, Emma Peng, Noah Hicks
-Date: 2025-09-11
+Date: 2025-09-15
 Summary: Structured logging setup.
 Disclaimer: This file includes AI-assisted content (GPT-5); reviewed and approved by the Purple Turtles team.
 """
 
 import logging
 import sys
-from .config import get_settings
+from config import get_settings
 
 
 def configure_logging() -> None:

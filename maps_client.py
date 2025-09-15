@@ -1,7 +1,7 @@
 """
-Title: Maps Client (Geocoding + Distance)
+Title: Maps Client (Geocoding + Distance) — Flat Layout
 Team: Purple Turtles — Gwen Li, Aadya Agarwal, Emma Peng, Noah Hicks
-Date: 2025-09-12
+Date: 2025-09-15
 Summary: Provides geocoding of addresses to lat/lon and distance estimation. Uses
         Google Maps if configured; otherwise falls back to simple haversine.
 Disclaimer: This file includes AI-assisted content (GPT-5); reviewed and approved by the Purple Turtles team.
@@ -14,7 +14,7 @@ from typing import Any, Dict, List, Optional
 
 import httpx
 
-from ..core.config import get_settings
+from config import get_settings
 
 
 GOOGLE_GEOCODE_URL = "https://maps.googleapis.com/maps/api/geocode/json"
