@@ -93,20 +93,21 @@ curl -X POST "http://localhost:8000/api/itinerary" \
 ## Files (flat)
 
 ```
-main.py              # FastAPI app entry
-routes.py            # API routes
-config.py            # Settings (.env supported)
-logging_config.py    # Logging setup
-itinerary.py         # Pydantic models
-planner.py           # Itinerary builder
-visitpgh_scraper.py  # VisitPittsburgh scraper
-ticketmaster_client.py
-yelp_client.py
-maps_client.py
-weather_client.py
-requirements.txt
-README.md
-.env (optional)
+main.py                               # FastAPI app entry
+routes.py                             # API routes: /api/health, /api/itinerary, /api/itinerary/options, /api/food/search, /api/events/this-week
+config.py                             # Settings (.env supported) via pydantic BaseSettings
+logging_config.py                     # Structured logging setup
+itinerary.py                          # Pydantic domain models/schemas
+planner.py                            # Itinerary builder core logic (events, food, weather, maps)
+visitpgh_scraper.py                   # VisitPittsburgh 'This Week' scraper
+ticketmaster_client.py                # Ticketmaster Discovery API client
+yelp_client.py                        # Yelp Fusion API client for food search
+maps_client.py                        # Geocoding + distance; Google or haversine fallback
+weather_client.py                     # OpenWeather forecast + outdoor suitability mapping
+classifier.py                         # Indoor/Outdoor classifier (heuristic + optional OpenAI)
+requirements.txt                      # Python dependencies
+README.md                             # This documentation                          # Team notes (non-essential)
+.env (optional)                       # Local environment configuration (not committed)
 ```
 
 ## Notes for graders
