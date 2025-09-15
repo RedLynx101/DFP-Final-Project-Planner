@@ -15,6 +15,7 @@ import json
 import pytest
 
 from src.core.config import get_settings
+import asyncio
 
 
 def _build_items() -> List[Dict[str, Optional[str]]]:
@@ -82,16 +83,18 @@ def test_openai_places_classification_accuracy():
     correct = 0
     outputs: List[Tuple[str, str, str]] = []  # (name, expected, got)
 
-    for item in items:
-        prompt = _make_prompt(item["name"] or "", item.get("description"))
+    concurrency = max(1, int(get_settings().openai_concurrency))
+
+    async def classify_one(item: Dict[str, Optional[str]]) -> Tuple[str, str, str]:
+        prompt = _make_prompt(item.get("name") or "", item.get("description"))
         try:
             system_msg = (
                 "Answer with exactly one word: 'indoor' or 'outdoor'. No punctuation.\n"
                 "If the place is a museum, gallery, arena, center, hall: indoor.\n"
                 "If the place is a park, trail, garden, playground, market: outdoor.\n"
             )
-            examples: List[Dict[str, str]] = []  # gpt-5-nano struggled with examples previously
-            resp = client.chat.completions.create(
+            examples: List[Dict[str, str]] = []
+            resp = await client.chat.completions.create(
                 model=model,
                 messages=[
                     {"role": "system", "content": system_msg},
@@ -102,70 +105,41 @@ def test_openai_places_classification_accuracy():
                 ],
                 max_completion_tokens=get_settings().openai_max_completion_tokens,
             )
-            # Debug dump of response structure
-            try:
-                print("OpenAI raw response object:", resp)
-                # Common fields
-                rid = getattr(resp, "id", None)
-                print("response.id:", rid)
-                model_used = getattr(resp, "model", None)
-                print("response.model:", model_used)
-                usage = getattr(resp, "usage", None)
-                print("response.usage:", usage)
-                choices = getattr(resp, "choices", None)
-                print("response.choices:", choices)
-                if choices:
-                    try:
-                        print("first choice finish_reason:", getattr(choices[0], "finish_reason", None))
-                        print("first choice message:", getattr(choices[0], "message", None))
-                    except Exception:
-                        pass
-            except Exception:
-                pass
             content = (resp.choices[0].message.content or "").strip().lower()
             if content not in {"indoor", "outdoor"}:
-                # Heuristic fallback parsing from model output
                 parsed = _parse_label(content)
                 if parsed in {"indoor", "outdoor"}:
                     content = parsed
                 else:
-                    # As a last resort, apply the same local heuristic used by the app
                     from src.services.classifier import classify_environment_heuristic
                     content = classify_environment_heuristic(
                         (item.get("name") or "") + " " + (item.get("description") or "")
                     )
         except Exception as e:
-            # Print detailed error info and continue with 'unknown' label instead of skipping
             print("OpenAI exception type:", type(e).__name__)
             try:
-                # Many OpenAI SDK errors stringify to include server JSON
                 print("OpenAI error:", str(e))
             except Exception:
                 pass
-            # Attempt to extract structured details if present on the exception
-            for attr in ("status_code", "code", "message"):
-                val = getattr(e, attr, None)
-                if val is not None:
-                    print(f"OpenAI error {attr}:", val)
-            resp_obj = getattr(e, "response", None)
-            if resp_obj is not None:
-                try:
-                    # Some clients expose .json or .text
-                    if hasattr(resp_obj, "json"):
-                        print("OpenAI response json:", resp_obj.json())
-                    elif hasattr(resp_obj, "text"):
-                        print("OpenAI response text:", resp_obj.text)
-                    else:
-                        print("OpenAI response:", repr(resp_obj))
-                except Exception:
-                    pass
             content = "unknown"
 
         label = _parse_label(content)
-        expected = item["expected"] or "unknown"
-        if label == expected:
-            correct += 1
-        outputs.append((item["name"] or "<unknown>", expected, label))
+        expected = item.get("expected") or "unknown"
+        return (item.get("name") or "<unknown>", expected, label)
+
+    async def run_all() -> List[Tuple[str, str, str]]:
+        sem = asyncio.Semaphore(concurrency)
+
+        async def wrapped(item: Dict[str, Optional[str]]):
+            async with sem:
+                return await classify_one(item)
+
+        tasks = [asyncio.create_task(wrapped(it)) for it in items]
+        return [await t for t in tasks]
+
+    # Use asyncio to parallelize
+    outputs = asyncio.run(run_all())
+    correct = sum(1 for _, exp, got in outputs if exp == got)
 
     # Print per-item results and success rate for visibility under -s
     for name, expected, label in outputs:

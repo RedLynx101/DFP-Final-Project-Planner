@@ -9,6 +9,7 @@ Disclaimer: This file includes AI-assisted content (GPT-5); reviewed and approve
 from __future__ import annotations
 
 from datetime import datetime, timedelta
+import asyncio
 import re
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
@@ -23,7 +24,7 @@ from ..models.itinerary import (
 )
 from .visitpgh_scraper import fetch_this_week_events
 from .yelp_client import search_food
-from .classifier import classify_environment
+from .classifier import classify_environment, classify_environment_batch
 from .weather_client import fetch_forecast, map_forecast_to_days
 from .maps_client import geocode_address, distance_matrix_miles
 from .ticketmaster_client import fetch_events_ticketmaster
@@ -154,11 +155,15 @@ def _collect_candidates(
     # VisitPgh events (web-scraped)
     try:
         events_payload = fetch_this_week_events()
-        for e in events_payload.get("events", []):
+        visit_events = list(events_payload.get("events", []))
+        # Batch classify to avoid sequential OpenAI calls
+        texts = [f"{(e.get('title') or '')} {(e.get('details') or '')}" for e in visit_events]
+        envs = asyncio.run(classify_environment_batch(texts)) if texts else []
+        for idx, e in enumerate(visit_events):
             title = e.get("title") or ""
             details = e.get("details") or ""
             url = e.get("url")
-            env = classify_environment(f"{title} {details}")
+            env = envs[idx] if idx < len(envs) else classify_environment(f"{title} {details}")
             day_name = _parse_day_from_text(f"{title} {details}")
             candidates.append(
                 {
@@ -219,11 +224,14 @@ def _collect_candidates(
             )
         else:
             tm_payload = fetch_events_ticketmaster(city=city.split(",")[0], start=start, end=end)
-        for e in tm_payload.get("events", []):
+        tm_events = list(tm_payload.get("events", []))
+        texts = [f"{(e.get('title') or '')} {(e.get('details') or '')}" for e in tm_events]
+        envs = asyncio.run(classify_environment_batch(texts)) if texts else []
+        for idx, e in enumerate(tm_events):
             title = e.get("title") or ""
             details = e.get("details") or ""
             url = e.get("url")
-            env = classify_environment(f"{title} {details}")
+            env = envs[idx] if idx < len(envs) else classify_environment(f"{title} {details}")
             day_name = _weekday_from_iso_datetime(e.get("start_datetime"))
             candidates.append(
                 {

@@ -21,6 +21,7 @@ class Settings(BaseSettings):
     openai_api_key: str = Field("changeme-openai-key", validation_alias="OPENAI_API_KEY")
     openai_model: str = Field("gpt-5-nano", validation_alias="OPENAI_MODEL")
     openai_max_completion_tokens: int = Field(500, validation_alias="OPENAI_MAX_COMPLETION_TOKENS")
+    openai_concurrency: int = Field(8, validation_alias="OPENAI_CONCURRENCY")
     maps_api_key: str = Field("changeme-maps-key", validation_alias="MAPS_API_KEY")
     weather_api_key: str = Field("changeme-weather-key", validation_alias="WEATHER_API_KEY")
     events_api_key: str = Field("changeme-events-key", validation_alias="EVENTS_API_KEY")
