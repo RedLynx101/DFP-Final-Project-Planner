@@ -106,7 +106,7 @@ maps_client.py                        # Geocoding + distance; Google or haversin
 weather_client.py                     # OpenWeather forecast + outdoor suitability mapping
 classifier.py                         # Indoor/Outdoor classifier (heuristic + optional OpenAI)
 requirements.txt                      # Python dependencies
-README.md                             # This documentation                          # Team notes (non-essential)
+README.md                             # This documentation                         
 .env (optional)                       # Local environment configuration (not committed)
 ```
 
