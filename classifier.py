@@ -156,6 +156,8 @@ async def classify_environment_batch(texts: Iterable[str]) -> List[str]:
     except Exception:
         return heuristic_labels
 
+    # IMPORTANT: Explicitly close the async client before the loop closes to
+    # avoid "Event loop is closed" errors during httpx/anyio transport cleanup
     client = AsyncOpenAI(api_key=key)
 
     # Deduplicate prompts
@@ -198,11 +200,18 @@ async def classify_environment_batch(texts: Iterable[str]) -> List[str]:
     # Launch tasks for unique prompts
     tasks: Dict[str, asyncio.Task[str]] = {p: asyncio.create_task(classify_one(p)) for p in unique_prompts}
     results_by_prompt: Dict[str, str] = {}
-    for prompt, task in tasks.items():
+    try:
+        for prompt, task in tasks.items():
+            try:
+                results_by_prompt[prompt] = await task
+            except Exception:
+                results_by_prompt[prompt] = "unknown"
+    finally:
+        # Ensure the async OpenAI client is closed before the event loop is torn down
         try:
-            results_by_prompt[prompt] = await task
+            await client.aclose()  # type: ignore[attr-defined]
         except Exception:
-            results_by_prompt[prompt] = "unknown"
+            pass
 
     # Map back to original indices
     labels = list(heuristic_labels)
