@@ -11,7 +11,9 @@ import httpx
 from bs4 import BeautifulSoup
 
 
-VISIT_PGH_URL = "https://www.visitpittsburgh.com/events-festivals/this-week-in-pittsburgh/"
+VISIT_PGH_URL = (
+    "https://www.visitpittsburgh.com/events-festivals/this-week-in-pittsburgh/"
+)
 
 
 def fetch_this_week_events() -> Dict[str, Any]:
@@ -39,7 +41,18 @@ def fetch_this_week_events() -> Dict[str, Any]:
             continue
         # Skip obvious non-event headings
         lowered = title.lower()
-        if any(k in lowered for k in ["navigation", "happening this week", "ongoing", "get the details", "contact", "privacy", "start planning"]):
+        if any(
+            k in lowered
+            for k in [
+                "navigation",
+                "happening this week",
+                "ongoing",
+                "get the details",
+                "contact",
+                "privacy",
+                "start planning",
+            ]
+        ):
             continue
 
         # Try to locate a nearby date/venue text in the next sibling(s)
@@ -67,5 +80,3 @@ def fetch_this_week_events() -> Dict[str, Any]:
             seen.add(t)
 
     return {"source": VISIT_PGH_URL, "events": unique[:25]}
-
-

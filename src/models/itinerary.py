@@ -33,7 +33,9 @@ def _next_weekend_start() -> datetime:
 def _next_weekend_end() -> datetime:
     """Compute the upcoming Sunday at 21:00 local time based on next weekend start."""
     sat_start = _next_weekend_start()
-    sun_end = (sat_start + timedelta(days=1)).replace(hour=21, minute=0, second=0, microsecond=0)
+    sun_end = (sat_start + timedelta(days=1)).replace(
+        hour=21, minute=0, second=0, microsecond=0
+    )
     return sun_end
 
 
@@ -41,9 +43,7 @@ class Preference(BaseModel):
     budget_level: str = Field("medium", description="low|medium|high")
     interests: List[str] = Field(default_factory=lambda: ["food", "museums"])
     mobility: str = Field("walk", description="walk|transit|drive")
-    environment: str = Field(
-        "either", description="indoor|outdoor|either"
-    )
+    environment: str = Field("either", description="indoor|outdoor|either")
 
 
 class Activity(BaseModel):
@@ -55,7 +55,9 @@ class Activity(BaseModel):
     cost_estimate: Optional[float] = None
     notes: Optional[str] = None
     external_url: Optional[str] = None
-    source: Optional[str] = Field(None, description="source identifier e.g. visitpgh|yelp")
+    source: Optional[str] = Field(
+        None, description="source identifier e.g. visitpgh|yelp"
+    )
     environment: Optional[str] = Field(None, description="indoor|outdoor|unknown")
     coordinates: Optional[Dict[str, float]] = Field(
         None, description="Geographic coordinates {lat, lon} if known"
@@ -80,22 +82,34 @@ class ItineraryRequest(BaseModel):
                 "city": "Pittsburgh, PA",
                 "start_date": _next_weekend_start().isoformat(),
                 "end_date": _next_weekend_end().isoformat(),
-                "preferences": {"budget_level": "medium", "interests": ["food", "museums"], "mobility": "walk", "environment": "either"},
+                "preferences": {
+                    "budget_level": "medium",
+                    "interests": ["food", "museums"],
+                    "mobility": "walk",
+                    "environment": "either",
+                },
                 "user_address": "Hamburg Hall, 4800 Forbes Ave, Pittsburgh, PA 15213",
                 "max_distance_miles": 5,
             }
         }
     )
     city: str = Field("Pittsburgh, PA")
-    start_date: datetime = Field(default_factory=_next_weekend_start, description="Start datetime; defaults to upcoming Saturday 09:00")
-    end_date: datetime = Field(default_factory=_next_weekend_end, description="End datetime; defaults to upcoming Sunday 21:00")
+    start_date: datetime = Field(
+        default_factory=_next_weekend_start,
+        description="Start datetime; defaults to upcoming Saturday 09:00",
+    )
+    end_date: datetime = Field(
+        default_factory=_next_weekend_end,
+        description="End datetime; defaults to upcoming Sunday 21:00",
+    )
     preferences: Preference = Field(default_factory=Preference)
     user_address: Optional[str] = Field(
         "Hamburg Hall, 4800 Forbes Ave, Pittsburgh, PA 15213",
         description="User origin street address for distance calculations (default: Hamburg Hall, CMU)",
     )
     max_distance_miles: Optional[float] = Field(
-        5, description="Maximum distance from origin in miles for included activities (default: 5)"
+        5,
+        description="Maximum distance from origin in miles for included activities (default: 5)",
     )
 
 
@@ -104,7 +118,9 @@ class ItineraryResponse(BaseModel):
     days: List[DayPlan]
     summary: Optional[str] = None
     warnings: List[str] = Field(default_factory=list)
-    sources: Dict[str, int] = Field(default_factory=dict, description="counts of items by source")
+    sources: Dict[str, int] = Field(
+        default_factory=dict, description="counts of items by source"
+    )
 
 
 class EventItem(BaseModel):
@@ -127,5 +143,3 @@ class YelpSearchResponse(BaseModel):
     query: str
     location: str
     results: List[dict]
-
-

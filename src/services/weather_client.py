@@ -29,22 +29,56 @@ def _geocode_city_to_coords(city: str) -> Optional[Dict[str, float]]:
 
 def fetch_forecast(city: str, now: Optional[datetime] = None) -> Dict[str, Any]:
     settings = get_settings()
-    coords = _geocode_city_to_coords(city)
-    if not coords:
-        raise ValueError("Unsupported city for forecast; only Pittsburgh supported in MVP")
 
     params = {
-        "lat": coords["lat"],
-        "lon": coords["lon"],
+        "q": city,
         "appid": settings.weather_api_key,
-        "units": "imperial",
+        "units": "imperial",  # 华氏温度
     }
+
     with httpx.Client(timeout=10) as client:
         resp = client.get(OPENWEATHER_URL, params=params)
         resp.raise_for_status()
         data = resp.json()
 
-    return data
+    # 按小时数据处理（每3小时一条）
+    hourly_forecast = []
+    for item in data["list"][:8]:  # 未来24小时（每3小时）
+        hourly_forecast.append(
+            {
+                "time": item["dt_txt"],
+                "temp": item["main"]["temp"],
+                "humidity": item["main"]["humidity"],
+                "description": item["weather"][0]["description"],
+            }
+        )
+
+    # 按天汇总（未来7天平均温度）
+    daily_dict = {}
+    for item in data["list"]:
+        date_str = item["dt_txt"].split(" ")[0]
+        if date_str not in daily_dict:
+            daily_dict[date_str] = {"temps": [], "humidities": []}
+        daily_dict[date_str]["temps"].append(item["main"]["temp"])
+        daily_dict[date_str]["humidities"].append(item["main"]["humidity"])
+
+    daily_forecast = []
+    for date_str, values in daily_dict.items():
+        avg_temp = sum(values["temps"]) / len(values["temps"])
+        avg_hum = sum(values["humidities"]) / len(values["humidities"])
+        daily_forecast.append(
+            {
+                "date": date_str,
+                "temp": round(avg_temp, 1),
+                "humidity": round(avg_hum, 1),
+            }
+        )
+
+    return {
+        "city": city,
+        "daily": daily_forecast[:7],  # 7天
+        "hourly": hourly_forecast,  # 24小时（每3小时）
+    }
 
 
 def outdoor_suitability(score_inputs: Dict[str, Any]) -> float:
@@ -125,4 +159,3 @@ def map_forecast_to_days(forecast: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
         }
 
     return summary
-

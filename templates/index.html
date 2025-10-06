@@ -1,13 +1,383 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
-    <title>Weekender</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🍷 Weekender Pittsburgh</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* ==========================
+           Basic Layout
+        ========================== */
+        body {
+            font-family: "Segoe UI", Arial, sans-serif;
+            margin: 0;
+            background-color: #f9f9f9;
+        }
+
+        header {
+            background-color: #800020;
+            color: white;
+            text-align: center;
+            padding: 1.8rem 0;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        header p {
+            margin: 0.3rem 0 0;
+            font-size: 1rem;
+        }
+
+        /* ==========================
+           Dashboard Grid
+        ========================== */
+        main.dashboard {
+            display: grid;
+            grid-template-columns: 1.2fr 0.9fr;
+            grid-template-rows: auto auto;
+            gap: 1.2rem;
+            padding: 1.5rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+            padding: 1.2rem 1.4rem;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card h2 {
+            color: #800020;
+            margin-bottom: 0.6rem;
+            font-size: 1.3rem;
+        }
+
+        /* ==========================
+           Weather Section (weather, temperature and humidity)
+        ========================== */
+        .weather {
+            grid-column: 1 / 2;
+            grid-row: 1 / 2;
+            min-height: 300px;
+        }
+
+        #weatherChart {
+            width: 100%;
+            max-height: 220px;
+            height: 200px;
+        }
+
+        #weather-info {
+            font-weight: 500;
+            margin-bottom: 1rem;
+        }
+
+        .hourly-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-top: 1rem;
+        }
+
+        .hourly-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 6px 10px;
+            border-radius: 8px;
+            background: #fff4f6;
+            border: 1px solid #f1c5cf;
+            font-size: 0.9rem;
+        }
+
+        .hourly-item span {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .hourly-item .time {
+            color: #800020;
+            font-weight: 600;
+            width: 60px;
+        }
+
+        .hourly-item .temp {
+            color: #a12444;
+            width: 70px;
+        }
+
+        .hourly-item .humidity {
+            color: #444;
+            width: 80px;
+        }
+
+        .hourly-item .desc {
+            flex: 1;
+            text-align: right;
+            color: #333;
+        }
+
+        /* ==========================
+           Planner, Events, Restaurants
+        ========================== */
+        .planner {
+            grid-column: 2 / 3;
+            grid-row: 1 / 2;
+        }
+
+        .planner button {
+            background-color: #800020;
+            color: white;
+            border: none;
+            padding: 0.5rem;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .planner button:hover {
+            background-color: #a63a58;
+        }
+
+        .events {
+            grid-column: 1 / 2;
+            grid-row: 2 / 3;
+        }
+
+        .restaurants {
+            grid-column: 2 / 3;
+            grid-row: 2 / 3;
+        }
+
+        footer {
+            text-align: center;
+            padding: 1rem;
+            color: #666;
+            font-size: 0.9rem;
+        }
+    </style>
 </head>
 
 <body>
-    <h1>Hello, Weekender! 🎉</h1>
-    <p>This is your first web page powered by FastAPI + Jinja2.</p>
+    <!-- Title -->
+    <header>
+        <h1>🍷 Weekender Pittsburgh</h1>
+        <p>Discover your perfect weekend in Pittsburgh — weather, food, and events at a glance!</p>
+    </header>
+
+    <!-- Dashboard -->
+    <main class="dashboard">
+
+        <!-- Upper left: weather -->
+        <section class="card weather">
+            <h2>🌤 Weather & Temperature</h2>
+            <p>7-day forecast for <b>Pittsburgh</b> below.</p>
+
+            <div id="weather-info"></div>
+            <canvas id="weatherChart"></canvas>
+
+            <h3 style="margin-top:1.2rem;">Next 24 Hours</h3>
+            <div id="weather-hourly" class="hourly-list"></div>
+        </section>
+
+        <!-- Upper right: planner -->
+        <section class="card planner">
+            <h2>🗓️ Plan Your Weekend</h2>
+            <p>Select a start date to generate your itinerary:</p>
+
+            <!-- Select date and start planning -->
+            <form id="planner-form">
+                <label for="start_date">Start Date:</label>
+                <input type="date" id="start_date" name="start_date" required>
+                <button type="submit">Generate Plan</button>
+            </form>
+
+            <!-- Show the plan result -->
+            <div id="plan-result"
+                style="margin-top:1rem; background:#fff4f6; border:1px solid #f3c0c9; border-radius:8px; padding:10px; min-height:60px;">
+                <p style="color:#800020; margin:0;">✨ Choose a date above to see your weekend plan.</p>
+            </div>
+        </section>
+
+
+        <!-- Bottom left: events -->
+        <section class="card events">
+            <h2>🎶 Upcoming Events</h2>
+            <ul>
+                <li>Penguins vs Islanders @ PPG Paints Arena</li>
+                <li>Downtown Christmas Market</li>
+                <li>Art Walk at Strip District</li>
+            </ul>
+        </section>
+
+        <!-- Bottom right: restaurants -->
+        <section class="card restaurants">
+            <h2>🍽️ Top Restaurants</h2>
+            <ul>
+                <li>Primanti Bros - Classic Pittsburgh sandwiches</li>
+                <li>DiAnoia’s Eatery - Italian comfort food</li>
+                <li>Meat & Potatoes - American gastropub</li>
+            </ul>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        © 2025 Weekender Pittsburgh | Built with FastAPI + Jinja2
+    </footer>
+
+    <script>
+        async function loadWeather() {
+            try {
+                const response = await fetch("/api/weather");
+                const data = await response.json();
+                const daily = data.daily || [];
+                const hourly = data.hourly || [];
+
+                if (!daily.length) {
+                    document.getElementById("weather-info").innerHTML =
+                        "<p>No weather data available for Pittsburgh right now.</p>";
+                    return;
+                }
+
+                document.getElementById("weather-info").innerHTML = `
+                    <p><b>${data.city}</b>: ${daily[0].description}, ${daily[0].temp.toFixed(1)}°F, humidity ${daily[0].humidity}%</p>
+                `;
+
+                const ctx = document.getElementById("weatherChart").getContext("2d");
+                new Chart(ctx, {
+                    type: "line",
+                    data: {
+                        labels: daily.map(d => d.date),
+                        datasets: [
+                            {
+                                label: "Temperature (°F)",
+                                data: daily.map(d => d.temp),
+                                borderColor: "#800020",
+                                backgroundColor: "rgba(128,0,32,0.1)",
+                                tension: 0.3,
+                                yAxisID: "y"
+                            },
+                            {
+                                label: "Humidity (%)",
+                                data: daily.map(d => d.humidity),
+                                borderColor: "#FFB6C1",
+                                backgroundColor: "rgba(255,182,193,0.2)",
+                                tension: 0.3,
+                                yAxisID: "y1"
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        scales: {
+                            y: {
+                                type: "linear",
+                                position: "left",
+                                beginAtZero: true
+                            },
+                            y1: {
+                                type: "linear",
+                                position: "right",
+                                beginAtZero: true,
+                                grid: { drawOnChartArea: false }
+                            }
+                        }
+                    }
+                });
+
+                // Show the icons of weather in next 24h
+                const hourlyDiv = document.getElementById("weather-hourly");
+                hourlyDiv.innerHTML = hourly.slice(0, 10).map(h => {
+                    const icon = h.description.includes("clear") ? "☀️"
+                        : h.description.includes("rain") ? "🌧️"
+                            : h.description.includes("cloud") ? "☁️"
+                                : h.description.includes("snow") ? "❄️" : "🌡️";
+                    return `
+                        <div class="hourly-item">
+                            <span class="time">${h.time.split(" ")[1].slice(0, 5)}</span>
+                            <span class="temp">${h.temp.toFixed(0)}°F</span>
+                            <span class="humidity">💧${h.humidity}%</span>
+                            <span class="desc">${icon} ${h.description}</span>
+                        </div>
+                    `;
+                }).join("");
+            } catch (err) {
+                console.error("Error loading weather:", err);
+            }
+        }
+
+        window.addEventListener("DOMContentLoaded", loadWeather);
+    </script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const form = document.getElementById("planner-form");
+            const resultBox = document.getElementById("plan-result");
+
+            form.addEventListener("submit", async (e) => {
+                e.preventDefault();
+
+                const date = document.getElementById("start_date").value;
+                if (!date) {
+                    resultBox.innerHTML = `<p style="color:#b00;">⚠️ Please select a start date first.</p>`;
+                    return;
+                }
+
+                resultBox.innerHTML = `<p>⏳ Generating your weekend plan for <b>${date}</b>...</p>`;
+
+                try {
+                    const res = await fetch(`/api/plan?start_date=${date}`);
+                    const data = await res.json();
+
+                    if (data.error) {
+                        resultBox.innerHTML = `<p style="color:#b00;">⚠️ ${data.error}</p>`;
+                        return;
+                    }
+
+                    if (!data.activities || data.activities.length === 0) {
+                        resultBox.innerHTML = `
+          <p><b>📅 Weekend Plan (${date})</b></p>
+          <p style="color:#555;">No activities found for this date. Try another date!</p>
+        `;
+                        return;
+                    }
+
+                    resultBox.innerHTML = `
+        <p><b>📅 Weekend Plan (${date})</b></p>
+        <ul style="padding-left:1rem; list-style:none;">
+          ${data.activities
+                            .map(
+                                (a) =>
+                                    `<li style="margin-bottom:6px;">${a}</li>`
+                            )
+                            .join("")}
+        </ul>
+      `;
+                } catch (err) {
+                    console.error("Error fetching plan:", err);
+                    resultBox.innerHTML = `
+        <p style="color:#b00;">⚠️ Failed to load itinerary. Please try again later.</p>
+      `;
+                }
+            });
+        });
+    </script>
+
+
 </body>
 
 </html>
