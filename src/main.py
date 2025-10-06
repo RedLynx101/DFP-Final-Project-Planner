@@ -7,9 +7,12 @@ Disclaimer: This file includes AI-assisted content (GPT-5); reviewed and approve
 """
 
 from fastapi import FastAPI
-from .core.config import get_settings
-from .core.logging_config import configure_logging
-from .api.routes import router as api_router
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
+from src.core.config import get_settings
+from src.core.logging_config import configure_logging
+from src.api.routes import router as api_router
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
@@ -31,6 +34,7 @@ def create_app() -> FastAPI:
     # Add homepage route
     @app.get("/", response_class=HTMLResponse)
     async def read_root(request: Request):
+        print("✅ Homepage route called successfully!")
         return templates.TemplateResponse("index.html", {"request": request})
 
     return app

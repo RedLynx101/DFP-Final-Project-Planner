@@ -7,107 +7,80 @@ Disclaimer: This file includes AI-assisted content (GPT-5); reviewed and approve
 """
 
 from fastapi import APIRouter, HTTPException, Query
+from fastapi.encoders import jsonable_encoder
+import logging
+import traceback
 from datetime import datetime, timedelta
-from ..models.itinerary import (
+from types import SimpleNamespace
+from src.models.itinerary import (
     ItineraryRequest,
     ItineraryResponse,
     ItineraryOptionsResponse,
+    Preference,
 )
-from ..services.planner import build_itinerary, build_itinerary_options
-from ..services.yelp_client import search_food
-from ..services.visitpgh_scraper import fetch_this_week_events
-from ..services.weather_client import fetch_forecast
+from src.services.planner import build_itinerary, build_itinerary_options
+from src.services.yelp_client import search_food
+from src.services.visitpgh_scraper import fetch_this_week_events
+from src.services.weather_client import fetch_forecast
 
 
 router = APIRouter()
+print("🚀 routes_planner loaded successfully!")
 
 
 @router.get("/weather")
-def get_weather():
+async def get_weather():
     """
     Fetches weather forecast data for Pittsburgh (7-day + hourly)
     """
+    print("📅 get_weather() called successfully")
+
     data = fetch_forecast("Pittsburgh")
     return data
 
 
 @router.get("/plan")
-async def get_plan(start_date: str = Query(...)):
+async def get_plan(
+    start_date: str = Query(...),
+    address: str = Query("Pittsburgh, PA"),
+    days: int = Query(2),
+):
     """
-    Generate a weekend itinerary for Pittsburgh.
-    Frontend sends the start_date (YYYY-MM-DD), we build the itinerary.
+    Generate itinerary for given date and location.
     """
+    print("📅 get_plan() called successfully")
+
     try:
+        # Convert date
         start_dt = datetime.strptime(start_date, "%Y-%m-%d")
-    except ValueError:
-        return {"error": "Invalid date format. Use YYYY-MM-DD."}
+        end_dt = start_dt + timedelta(days=days - 1)
+        print(f"Start: {start_dt}, End: {end_dt}, Address: {address}")
 
-    req = ItineraryRequest(
-        city="Pittsburgh",
-        start_date=start_dt,
-        end_date=start_dt + timedelta(days=1),
-        # preferences=ItineraryPreferences(
-        #     interests=["food", "art", "music"], environment="either"
-        # ),
-    )
+        pref = Preference(
+            budget_level="medium",
+            interests=["food", "museums", "art"],
+            mobility="walk",
+            environment="either",
+        )
 
-    itinerary = build_itinerary(req)
+        request_obj = ItineraryRequest(
+            city=address,
+            start_date=start_dt,
+            end_date=end_dt,
+            preferences=pref,
+            user_address=address,
+            max_distance_miles=5.0,
+        )
 
-    # Transfer to json (readable by the frontend)
-    result = {"start_date": start_date, "activities": []}
+        itinerary = build_itinerary(request_obj)
 
-    for day in itinerary.days:
-        for a in day.activities:
-            time_info = (
-                f"{a.start_time.strftime('%I:%M %p')}–{a.end_time.strftime('%I:%M %p')}"
-                if a.start_time
-                else ""
-            )
-            text = f"{time_info} {a.name} ({a.category})"
-            if a.address:
-                text += f" — {a.address}"
-            result["activities"].append(text)
+        print("✅ Itinerary built successfully!")
+        return jsonable_encoder({"start_date": start_date, "activities": itinerary})
 
-    return result @ router.get("/plan")
-
-
-async def get_plan(start_date: str = Query(...)):
-    """
-    Generate a weekend itinerary for Pittsburgh.
-    Frontend sends the start_date (YYYY-MM-DD), we build the itinerary.
-    """
-    try:
-        start_dt = datetime.strptime(start_date, "%Y-%m-%d")
-    except ValueError:
-        return {"error": "Invalid date format. Use YYYY-MM-DD."}
-
-    req = ItineraryRequest(
-        city="Pittsburgh",
-        start_date=start_dt,
-        end_date=start_dt + timedelta(days=1),
-        # preferences=ItineraryPreferences(
-        #     interests=["food", "art", "music"], environment="either"
-        # ),
-    )
-
-    itinerary = build_itinerary(req)
-
-    # turn to json format (readable for frontend)
-    result = {"start_date": start_date, "activities": []}
-
-    for day in itinerary.days:
-        for a in day.activities:
-            time_info = (
-                f"{a.start_time.strftime('%I:%M %p')}–{a.end_time.strftime('%I:%M %p')}"
-                if a.start_time
-                else ""
-            )
-            text = f"{time_info} {a.name} ({a.category})"
-            if a.address:
-                text += f" — {a.address}"
-            result["activities"].append(text)
-
-    return result
+    except Exception as e:
+        print("❌ ERROR in get_plan():", e)
+        traceback.print_exc()
+        return {"error": f"Failed to build itinerary: {e}"}
 
 
 @router.get("/health")

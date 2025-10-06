@@ -194,19 +194,35 @@
         <!-- Upper right: planner -->
         <section class="card planner">
             <h2>🗓️ Plan Your Weekend</h2>
-            <p>Select a start date to generate your itinerary:</p>
+            <p>Select a start date, location, and duration to generate your itinerary:</p>
 
-            <!-- Select date and start planning -->
+            <!-- Select date, address, and number of days -->
             <form id="planner-form">
                 <label for="start_date">Start Date:</label>
-                <input type="date" id="start_date" name="start_date" required>
+                <input type="date" id="start_date" name="start_date" required><br><br>
+
+                <!-- User input address -->
+                <label for="address">Location:</label>
+                <input type="text" id="address" placeholder="Enter your address or area"
+                    style="width: 80%; margin-top: 5px;" value="Pittsburgh, PA"><br><br>
+
+                <!-- Number of days selector -->
+                <label for="days">Number of Days:</label>
+                <select id="days" style="margin-top: 5px;">
+                    <option value="1">1 day</option>
+                    <option value="2" selected>2 days</option>
+                    <option value="3">3 days</option>
+                    <option value="4">4 days</option>
+                    <option value="5">5 days</option>
+                </select><br><br>
+
                 <button type="submit">Generate Plan</button>
             </form>
 
             <!-- Show the plan result -->
             <div id="plan-result"
                 style="margin-top:1rem; background:#fff4f6; border:1px solid #f3c0c9; border-radius:8px; padding:10px; min-height:60px;">
-                <p style="color:#800020; margin:0;">✨ Choose a date above to see your weekend plan.</p>
+                <p style="color:#800020; margin:0;">✨ Choose options above to see your weekend plan.</p>
             </div>
         </section>
 
@@ -332,51 +348,60 @@
                 e.preventDefault();
 
                 const date = document.getElementById("start_date").value;
+                const address = document.getElementById("address").value || "Pittsburgh, PA";
+                const days = document.getElementById("days").value;
+
                 if (!date) {
                     resultBox.innerHTML = `<p style="color:#b00;">⚠️ Please select a start date first.</p>`;
                     return;
                 }
 
-                resultBox.innerHTML = `<p>⏳ Generating your weekend plan for <b>${date}</b>...</p>`;
+                resultBox.innerHTML = `<p>⏳ Generating your plan for <b>${date}</b>...</p>`;
 
                 try {
-                    const res = await fetch(`/api/plan?start_date=${date}`);
+                    const res = await fetch(`/api/plan?start_date=${date}&address=${encodeURIComponent(address)}&days=${days}`);
                     const data = await res.json();
+
+                    console.log("✅ API response:", data);
 
                     if (data.error) {
                         resultBox.innerHTML = `<p style="color:#b00;">⚠️ ${data.error}</p>`;
                         return;
                     }
 
-                    if (!data.activities || data.activities.length === 0) {
+                    const daysList = data.activities?.days;
+                    if (!daysList || daysList.length === 0) {
                         resultBox.innerHTML = `
-          <p><b>📅 Weekend Plan (${date})</b></p>
-          <p style="color:#555;">No activities found for this date. Try another date!</p>
-        `;
+                    <p><b>📅 Plan (${date})</b></p>
+                    <p style="color:#555;">No activities found for this location or date. Try another!</p>`;
                         return;
                     }
 
+                    const planHTML = daysList.map(day => `
+                <div style="margin-bottom:1rem;">
+                    <h3>📆 ${new Date(day.date).toLocaleDateString()}</h3>
+                    <ul style="list-style:none; padding-left:1rem;">
+                        ${day.activities.map(act => `
+                            <li>
+                                <b>${act.name}</b> (${act.category})<br>
+                                <small>${act.address || ''}</small>
+                            </li>`).join("")}
+                    </ul>
+                </div>
+            `).join("");
+
                     resultBox.innerHTML = `
-        <p><b>📅 Weekend Plan (${date})</b></p>
-        <ul style="padding-left:1rem; list-style:none;">
-          ${data.activities
-                            .map(
-                                (a) =>
-                                    `<li style="margin-bottom:6px;">${a}</li>`
-                            )
-                            .join("")}
-        </ul>
-      `;
+                <p><b>📅 Plan for ${address}</b></p>
+                ${planHTML}
+            `;
+
                 } catch (err) {
                     console.error("Error fetching plan:", err);
-                    resultBox.innerHTML = `
-        <p style="color:#b00;">⚠️ Failed to load itinerary. Please try again later.</p>
-      `;
+                    resultBox.innerHTML = `<p style="color:#b00;">⚠️ Failed to load itinerary. Please try again later.</p>`;
                 }
             });
         });
     </script>
-
 
 </body>
 

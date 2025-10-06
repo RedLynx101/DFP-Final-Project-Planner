@@ -95,17 +95,31 @@ def _pick_non_overlapping_blocks(
         if env_preference == "either" or env_preference is None:
             return True
         if env is None or env == "unknown":
-            return True  # allow unknowns; filtered later by weather when outdoor is poor
+            return (
+                True  # allow unknowns; filtered later by weather when outdoor is poor
+            )
         return env == env_preference
 
     # Partition candidates
-    food = [c for c in candidates if c.get("category") == "food" and match_env(c.get("environment"))]
-    events = [c for c in candidates if c.get("category") != "food" and match_env(c.get("environment"))]
+    food = [
+        c
+        for c in candidates
+        if c.get("category") == "food" and match_env(c.get("environment"))
+    ]
+    events = [
+        c
+        for c in candidates
+        if c.get("category") != "food" and match_env(c.get("environment"))
+    ]
 
     # Weather-based filtering for outdoor preference
     if env_preference == "outdoor" and suitability is not None and suitability < 0.4:
         # If outdoor is poor, prefer indoor events and record via notes
-        events = [c for c in candidates if (c.get("environment") == "indoor" or c.get("environment") is None)]
+        events = [
+            c
+            for c in candidates
+            if (c.get("environment") == "indoor" or c.get("environment") is None)
+        ]
 
     def to_activity(item: Dict[str, Any], start_h: int, end_h: int) -> Activity:
         return Activity(
@@ -157,13 +171,19 @@ def _collect_candidates(
         events_payload = fetch_this_week_events()
         visit_events = list(events_payload.get("events", []))
         # Batch classify to avoid sequential OpenAI calls
-        texts = [f"{(e.get('title') or '')} {(e.get('details') or '')}" for e in visit_events]
+        texts = [
+            f"{(e.get('title') or '')} {(e.get('details') or '')}" for e in visit_events
+        ]
         envs = asyncio.run(classify_environment_batch(texts)) if texts else []
         for idx, e in enumerate(visit_events):
             title = e.get("title") or ""
             details = e.get("details") or ""
             url = e.get("url")
-            env = envs[idx] if idx < len(envs) else classify_environment(f"{title} {details}")
+            env = (
+                envs[idx]
+                if idx < len(envs)
+                else classify_environment(f"{title} {details}")
+            )
             day_name = _parse_day_from_text(f"{title} {details}")
             candidates.append(
                 {
@@ -185,7 +205,9 @@ def _collect_candidates(
     try:
         breakfast = search_food(query="breakfast", location=city, limit=5)
         dinner = search_food(query="dinner", location=city, limit=5)
-        sources["yelp"] = len(breakfast.get("results", [])) + len(dinner.get("results", []))
+        sources["yelp"] = len(breakfast.get("results", [])) + len(
+            dinner.get("results", [])
+        )
         for b in breakfast.get("results", [])[:3]:
             candidates.append(
                 {
@@ -223,15 +245,23 @@ def _collect_candidates(
                 end=end,
             )
         else:
-            tm_payload = fetch_events_ticketmaster(city=city.split(",")[0], start=start, end=end)
+            tm_payload = fetch_events_ticketmaster(
+                city=city.split(",")[0], start=start, end=end
+            )
         tm_events = list(tm_payload.get("events", []))
-        texts = [f"{(e.get('title') or '')} {(e.get('details') or '')}" for e in tm_events]
+        texts = [
+            f"{(e.get('title') or '')} {(e.get('details') or '')}" for e in tm_events
+        ]
         envs = asyncio.run(classify_environment_batch(texts)) if texts else []
         for idx, e in enumerate(tm_events):
             title = e.get("title") or ""
             details = e.get("details") or ""
             url = e.get("url")
-            env = envs[idx] if idx < len(envs) else classify_environment(f"{title} {details}")
+            env = (
+                envs[idx]
+                if idx < len(envs)
+                else classify_environment(f"{title} {details}")
+            )
             day_name = _weekday_from_iso_datetime(e.get("start_datetime"))
             candidates.append(
                 {
@@ -340,6 +370,7 @@ def build_itinerary_options(request: ItineraryRequest) -> ItineraryOptionsRespon
                     c["duration_minutes"] = None
 
         if request.max_distance_miles is not None:
+
             def within_limit(item: Dict[str, Any]) -> bool:
                 dist = item.get("distance_miles")
                 if dist is None:
@@ -354,7 +385,9 @@ def build_itinerary_options(request: ItineraryRequest) -> ItineraryOptionsRespon
     day_names = [WEEKDAY_NAMES[d.weekday()] for d in day_dates]
 
     if not day_dates:
-        return ItineraryOptionsResponse(options=[], warnings=warnings, used_sources=used_sources)
+        return ItineraryOptionsResponse(
+            options=[], warnings=warnings, used_sources=used_sources
+        )
 
     # Group events by day name
     events_by_day: Dict[str, List[Dict[str, Any]]] = {dn: [] for dn in day_names}
@@ -381,13 +414,15 @@ def build_itinerary_options(request: ItineraryRequest) -> ItineraryOptionsRespon
             day_events = [
                 e
                 for e in events_by_day.get(dn, [])
-                if e.get("title") not in used_titles and e.get("title") not in global_used_event_titles
+                if e.get("title") not in used_titles
+                and e.get("title") not in global_used_event_titles
             ]
             if not day_events:
                 day_events = [
                     e
                     for e in events_by_day.get("unknown", [])
-                    if e.get("title") not in used_titles and e.get("title") not in global_used_event_titles
+                    if e.get("title") not in used_titles
+                    and e.get("title") not in global_used_event_titles
                 ]
 
             # Choose candidates to assemble blocks
@@ -395,7 +430,10 @@ def build_itinerary_options(request: ItineraryRequest) -> ItineraryOptionsRespon
             def sort_by_distance(items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
                 return sorted(
                     items,
-                    key=lambda x: (x.get("distance_miles") is None, x.get("distance_miles") or 0.0),
+                    key=lambda x: (
+                        x.get("distance_miles") is None,
+                        x.get("distance_miles") or 0.0,
+                    ),
                 )
 
             day_events_sorted = sort_by_distance(day_events)
@@ -472,7 +510,9 @@ def build_itinerary_options(request: ItineraryRequest) -> ItineraryOptionsRespon
             seen_signatures.add(signature)
             unique.append(opt)
 
-    return ItineraryOptionsResponse(options=unique, warnings=warnings, used_sources=used_sources)
+    return ItineraryOptionsResponse(
+        options=unique, warnings=warnings, used_sources=used_sources
+    )
 
 
 def build_itinerary(request: ItineraryRequest) -> ItineraryResponse:
