@@ -68,9 +68,9 @@ async def get_plan(start_date: str = Query(...)):
                 text += f" — {a.address}"
             result["activities"].append(text)
 
-    return result @ router.get("/plan")
-
-
+    return result
+    
+@router.get("/plan")
 async def get_plan(start_date: str = Query(...)):
     """
     Generate a weekend itinerary for Pittsburgh.
