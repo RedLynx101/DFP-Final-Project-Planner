@@ -70,44 +70,44 @@ async def get_plan(start_date: str = Query(...)):
 
     return result
     
-@router.get("/plan")
-async def get_plan(start_date: str = Query(...)):
-    """
-    Generate a weekend itinerary for Pittsburgh.
-    Frontend sends the start_date (YYYY-MM-DD), we build the itinerary.
-    """
-    try:
-        start_dt = datetime.strptime(start_date, "%Y-%m-%d")
-    except ValueError:
-        return {"error": "Invalid date format. Use YYYY-MM-DD."}
+# @router.get("/plan")
+# async def get_plan(start_date: str = Query(...)):
+#     """
+#     Generate a weekend itinerary for Pittsburgh.
+#     Frontend sends the start_date (YYYY-MM-DD), we build the itinerary.
+#     """
+#     try:
+#         start_dt = datetime.strptime(start_date, "%Y-%m-%d")
+#     except ValueError:
+#         return {"error": "Invalid date format. Use YYYY-MM-DD."}
 
-    req = ItineraryRequest(
-        city="Pittsburgh",
-        start_date=start_dt,
-        end_date=start_dt + timedelta(days=1),
-        # preferences=ItineraryPreferences(
-        #     interests=["food", "art", "music"], environment="either"
-        # ),
-    )
+#     req = ItineraryRequest(
+#         city="Pittsburgh",
+#         start_date=start_dt,
+#         end_date=start_dt + timedelta(days=1),
+#         # preferences=ItineraryPreferences(
+#         #     interests=["food", "art", "music"], environment="either"
+#         # ),
+#     )
 
-    itinerary = build_itinerary(req)
+#     itinerary = build_itinerary(req)
 
-    # turn to json format (readable for frontend)
-    result = {"start_date": start_date, "activities": []}
+    # # turn to json format (readable for frontend)
+    # result = {"start_date": start_date, "activities": []}
 
-    for day in itinerary.days:
-        for a in day.activities:
-            time_info = (
-                f"{a.start_time.strftime('%I:%M %p')}–{a.end_time.strftime('%I:%M %p')}"
-                if a.start_time
-                else ""
-            )
-            text = f"{time_info} {a.name} ({a.category})"
-            if a.address:
-                text += f" — {a.address}"
-            result["activities"].append(text)
+    # for day in itinerary.days:
+    #     for a in day.activities:
+    #         time_info = (
+    #             f"{a.start_time.strftime('%I:%M %p')}–{a.end_time.strftime('%I:%M %p')}"
+    #             if a.start_time
+    #             else ""
+    #         )
+    #         text = f"{time_info} {a.name} ({a.category})"
+    #         if a.address:
+    #             text += f" — {a.address}"
+    #         result["activities"].append(text)
 
-    return result
+    # return result
 
 
 @router.get("/health")
