@@ -71,6 +71,24 @@ uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```
 Open `http://localhost:8000/docs` for Swagger UI.
 
+### Console-only CLI
+
+You can generate itineraries without running the server:
+
+```powershell
+python cli.py --city "Pittsburgh, PA" --user-address "Hamburg Hall, 4800 Forbes Ave, Pittsburgh, PA 15213" --max-distance-miles 5 --environment either
+```
+
+- Multiple options:
+```powershell
+python cli.py --options 3
+```
+
+- JSON output:
+```powershell
+python cli.py --json
+```
+
 ## API (frontend usage)
 
 - GET `/api/health` → `{ "status": "ok" }`
