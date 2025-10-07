@@ -75,18 +75,37 @@ python cli.py
 
 This launches a beautiful ASCII-art console interface with:
 - 🎭 **Animated intro** with team credits
-- 📋 **Interactive menu** with 6 options:
+- 📋 **Interactive menu** with 7 options:
   1. Build Single Weekend Itinerary
   2. Build Multiple Itinerary Options
   3. Search Food (Yelp)
   4. View This Week's Events
   5. Build Itinerary & Export JSON
-  6. Exit
+  6. Test API Keys (Diagnostics)
+  7. Exit
+- 🔑 **API Status Display**: Shows "X/5 keys configured" at menu bottom
 - ✨ **Loading animations** and pretty-formatted output
 - 🔄 **Automatic menu loop** after each operation
 - ✅ **Input validation** with helpful defaults
 
 No command-line arguments needed—just run and follow the prompts!
+
+#### API Key Diagnostics
+
+The CLI includes a comprehensive API testing tool (Option 6) that validates all configured API keys:
+
+- **OpenAI**: Tests chat completion endpoint with configured model
+- **Google Maps**: Tests geocoding service with Pittsburgh coordinates  
+- **Weather (OpenWeather)**: Tests forecast retrieval for Pittsburgh
+- **Yelp**: Tests restaurant search functionality
+- **Ticketmaster**: Tests event discovery API
+
+Each test displays:
+- ✅ **WORKING**: API key configured and functioning properly
+- ❌ **FAILED**: API key configured but calls are failing (shows error details)
+- ⚠️ **NOT CONFIGURED**: No API key set in environment
+
+Results include specific details like response data or error messages to help troubleshoot issues. The main menu also shows a quick status summary (e.g., "🔑 API Status: 4/5 keys configured").
 
 ### Option 2: Web API with Swagger UI
 
@@ -141,6 +160,7 @@ README.md                             # This documentation
 ## Notes for graders
 
 - **Quickest way to demo:** Just run `python cli.py` and explore the interactive menu! 🎨
+- **API Key Testing:** Use Option 6 in the CLI to see which APIs are configured and working
 - The app runs without any API keys (reduced features; graceful fallbacks).
 - All code lives in the repo root for easy review.
 - Title, team, authors, summary, and AI disclaimer are included in each module header.
