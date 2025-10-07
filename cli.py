@@ -86,6 +86,196 @@ CREDITS = """
 LOADING_FRAMES = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"]
 
 
+# ============================================================================
+# EASTER EGG: BOUNCING BALLS PHYSICS SIMULATION
+# ============================================================================
+
+def bouncing_balls_simulation() -> None:
+    """Hidden Easter egg: Physics-based bouncing balls with collisions."""
+    import math
+    import random
+    import os as os_module
+    
+    # Try to import keyboard detection (Windows)
+    try:
+        import msvcrt
+        has_msvcrt = True
+    except ImportError:
+        has_msvcrt = False
+    
+    clear_screen()
+    print_header("🎾 BOUNCING BALLS PHYSICS SIMULATOR")
+    if has_msvcrt:
+        print("\n   🐢 Purple Turtles Easter Egg - Press any key to exit\n")
+    else:
+        print("\n   🐢 Purple Turtles Easter Egg - Press Ctrl+C to exit\n")
+    time.sleep(1)
+    
+    # Arena dimensions
+    WIDTH = 80
+    HEIGHT = 20
+    
+    # Ball class with physics
+    class Ball:
+        def __init__(self, x: float, y: float):
+            self.x = x
+            self.y = y
+            # Random velocity
+            angle = random.uniform(0, 2 * math.pi)
+            speed = random.uniform(0.5, 1.5)
+            self.vx = math.cos(angle) * speed
+            self.vy = math.sin(angle) * speed
+            self.radius = 0.5
+            self.color = random.choice(["🔴", "🔵", "🟢", "🟡", "🟣", "🟠", "⚫", "⚪"])
+        
+        def update(self):
+            """Update position based on velocity."""
+            self.x += self.vx
+            self.y += self.vy
+            
+            # Wall collisions with bounce
+            if self.x <= 1 or self.x >= WIDTH - 2:
+                self.vx *= -0.95  # Energy loss on bounce
+                self.x = max(1, min(WIDTH - 2, self.x))
+            
+            if self.y <= 1 or self.y >= HEIGHT - 2:
+                self.vy *= -0.95
+                self.y = max(1, min(HEIGHT - 2, self.y))
+        
+        def distance_to(self, other: 'Ball') -> float:
+            """Calculate distance to another ball."""
+            dx = self.x - other.x
+            dy = self.y - other.y
+            return math.sqrt(dx * dx + dy * dy)
+        
+        def collide_with(self, other: 'Ball'):
+            """Handle ball-to-ball collision with momentum transfer."""
+            dx = other.x - self.x
+            dy = other.y - self.y
+            dist = math.sqrt(dx * dx + dy * dy)
+            
+            if dist == 0:
+                return  # Same position, skip
+            
+            # Normalize collision vector
+            nx = dx / dist
+            ny = dy / dist
+            
+            # Relative velocity
+            dvx = self.vx - other.vx
+            dvy = self.vy - other.vy
+            
+            # Relative velocity in collision normal direction
+            dvn = dvx * nx + dvy * ny
+            
+            # Don't collide if moving apart
+            if dvn > 0:
+                return
+            
+            # Collision impulse (elastic collision, equal mass)
+            impulse = dvn
+            
+            # Update velocities
+            self.vx -= impulse * nx * 0.9  # Energy loss
+            self.vy -= impulse * ny * 0.9
+            other.vx += impulse * nx * 0.9
+            other.vy += impulse * ny * 0.9
+            
+            # Separate balls to prevent overlap
+            overlap = (self.radius * 2) - dist
+            if overlap > 0:
+                separation = overlap / 2 + 0.1
+                self.x -= nx * separation
+                self.y -= ny * separation
+                other.x += nx * separation
+                other.y += ny * separation
+    
+    # Initialize with one ball
+    balls: list[Ball] = [Ball(WIDTH // 2, HEIGHT // 2)]
+    last_spawn_time = time.time()
+    frame_count = 0
+    
+    try:
+        while True:
+            # Check for keyboard interrupt
+            if has_msvcrt and msvcrt.kbhit():
+                msvcrt.getch()  # Clear the buffer
+                break
+            
+            # Add new ball every 10 seconds (max 100 balls)
+            current_time = time.time()
+            if current_time - last_spawn_time >= 10 and len(balls) < 100:
+                # Spawn at random edge
+                edge = random.choice(['top', 'bottom', 'left', 'right'])
+                if edge == 'top':
+                    new_ball = Ball(random.uniform(5, WIDTH - 5), 2)
+                elif edge == 'bottom':
+                    new_ball = Ball(random.uniform(5, WIDTH - 5), HEIGHT - 3)
+                elif edge == 'left':
+                    new_ball = Ball(2, random.uniform(5, HEIGHT - 5))
+                else:
+                    new_ball = Ball(WIDTH - 3, random.uniform(5, HEIGHT - 5))
+                balls.append(new_ball)
+                last_spawn_time = current_time
+            
+            # Update physics
+            for ball in balls:
+                ball.update()
+            
+            # Check ball-to-ball collisions
+            for i in range(len(balls)):
+                for j in range(i + 1, len(balls)):
+                    if balls[i].distance_to(balls[j]) < balls[i].radius * 2:
+                        balls[i].collide_with(balls[j])
+            
+            # Render frame
+            clear_screen()
+            
+            # Create screen buffer
+            screen = [[' ' for _ in range(WIDTH)] for _ in range(HEIGHT)]
+            
+            # Draw border
+            for x in range(WIDTH):
+                screen[0][x] = '═'
+                screen[HEIGHT - 1][x] = '═'
+            for y in range(HEIGHT):
+                screen[y][0] = '║'
+                screen[y][WIDTH - 1] = '║'
+            screen[0][0] = '╔'
+            screen[0][WIDTH - 1] = '╗'
+            screen[HEIGHT - 1][0] = '╚'
+            screen[HEIGHT - 1][WIDTH - 1] = '╝'
+            
+            # Draw balls
+            for ball in balls:
+                x = int(round(ball.x))
+                y = int(round(ball.y))
+                if 1 <= x < WIDTH - 1 and 1 <= y < HEIGHT - 1:
+                    screen[y][x] = '●'
+            
+            # Print screen
+            for row in screen:
+                print(''.join(row))
+            
+            # Stats
+            next_spawn = max(0, 10 - (current_time - last_spawn_time))
+            print(f"\n   🎾 Balls: {len(balls)}/100  |  Next spawn: {next_spawn:.1f}s  |  Frame: {frame_count}")
+            if has_msvcrt:
+                print("   💡 Press any key to exit...")
+            else:
+                print("   💡 Press Ctrl+C to exit...")
+            
+            frame_count += 1
+            time.sleep(0.05)  # ~20 FPS
+    
+    except KeyboardInterrupt:
+        pass
+    
+    clear_screen()
+    print("\n   🐢 Thanks for playing!\n")
+    time.sleep(1.5)
+
+
 def animate_loading(message: str, duration: float = 2.0) -> None:
     """Show a spinning loader animation."""
     end_time = time.time() + duration
@@ -625,7 +815,10 @@ def main_loop() -> None:
     while True:
         choice = show_menu()
         
-        if choice == "1":
+        if choice == "0":
+            # Hidden Easter egg!
+            bouncing_balls_simulation()
+        elif choice == "1":
             option_build_itinerary()
         elif choice == "2":
             option_build_options()
