@@ -200,18 +200,19 @@ async def classify_environment_batch(texts: Iterable[str]) -> List[str]:
     # Launch tasks for unique prompts
     tasks: Dict[str, asyncio.Task[str]] = {p: asyncio.create_task(classify_one(p)) for p in unique_prompts}
     results_by_prompt: Dict[str, str] = {}
-    try:
-        for prompt, task in tasks.items():
-            try:
-                results_by_prompt[prompt] = await task
-            except Exception:
-                results_by_prompt[prompt] = "unknown"
-    finally:
-        # Ensure the async OpenAI client is closed before the event loop is torn down
+    
+    # Gather results
+    for prompt, task in tasks.items():
         try:
-            await client.aclose()  # type: ignore[attr-defined]
+            results_by_prompt[prompt] = await task
         except Exception:
-            pass
+            results_by_prompt[prompt] = "unknown"
+    
+    # Close the client before returning (while event loop is still running)
+    try:
+        await client.aclose()  # type: ignore[attr-defined]
+    except Exception:
+        pass
 
     # Map back to original indices
     labels = list(heuristic_labels)
