@@ -288,13 +288,15 @@ def _collect_candidates(
                 keep.append(c)
                 continue
             text = (c.get("title") or "") + " " + (c.get("notes") or "")
-            if any(i.lower() in text.lower() for i in interests):
+            # if any(i.lower() in text.lower() for i in interests):
+            #     keep.append(c)
+            # else:
+            #     # retain a fraction of non-matching events to preserve variety
+            #     # simple heuristic: keep every 3rd non-matching event
+            #     if (len(keep) % 3) == 0:
+            #         keep.append(c)
+            if any(i.lower() in text.lower() for i in interests) or c.get("category") == "event":
                 keep.append(c)
-            else:
-                # retain a fraction of non-matching events to preserve variety
-                # simple heuristic: keep every 3rd non-matching event
-                if (len(keep) % 3) == 0:
-                    keep.append(c)
         candidates = keep
 
     return candidates, warnings, sources
