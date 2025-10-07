@@ -299,13 +299,15 @@ def _collect_candidates(
                 keep.append(c)
         candidates = keep
 
-    print(
-    f"[DEBUG] Collected {len(candidates)} candidates "
-    f"({sum(1 for c in candidates if c.get('category')=='food')} food, "
-    f"{sum(1 for c in candidates if c.get('category')=='event')} events)"
-    )
-    print("Warnings:", warnings)
-    print("Sources:", sources)
+    if not any(c.get("category") == "event" for c in candidates):
+    candidates.append({
+        "title": "Explore Point State Park",
+        "category": "event",
+        "type": "outdoor",
+        "notes": "Fallback: Ticketmaster and VisitPgh unavailable.",
+        "source": "fallback",
+        "environment": "outdoor"
+    })
 
     return candidates, warnings, sources
 
