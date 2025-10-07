@@ -440,12 +440,12 @@ MENU_OPTIONS = """
 ║                            MAIN MENU                                     ║
 ╠══════════════════════════════════════════════════════════════════════════╣
 ║                                                                          ║
-║   1️⃣   Build Single Weekend Itinerary                                   ║
-║   2️⃣   Build Multiple Itinerary Options                                 ║
-║   3️⃣   Search Food (Yelp)                                               ║
-║   4️⃣   View This Week's Events                                          ║
-║   5️⃣   Build Itinerary & Export JSON                                    ║
-║   6️⃣   Exit                                                              ║
+║   1️⃣   Build Single Weekend Itinerary                                     ║
+║   2️⃣   Build Multiple Itinerary Options                                   ║
+║   3️⃣   Search Food (Yelp)                                                 ║
+║   4️⃣   View This Week's Events                                            ║
+║   5️⃣   Build Itinerary & Export JSON                                      ║
+║   6️⃣   Exit                                                               ║
 ║                                                                          ║
 ╚══════════════════════════════════════════════════════════════════════════╝
 """
