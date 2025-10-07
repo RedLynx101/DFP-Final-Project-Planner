@@ -65,29 +65,38 @@ OPENAI_MAX_COMPLETION_TOKENS=500
 
 ## Run
 
-From the repo root (flat layout):
+### Option 1: Interactive Console UI (Recommended for Quick Start) 🎨
+
+The easiest way to use Weekender is through the interactive menu system:
+
+```powershell
+python cli.py
+```
+
+This launches a beautiful ASCII-art console interface with:
+- 🎭 **Animated intro** with team credits
+- 📋 **Interactive menu** with 6 options:
+  1. Build Single Weekend Itinerary
+  2. Build Multiple Itinerary Options
+  3. Search Food (Yelp)
+  4. View This Week's Events
+  5. Build Itinerary & Export JSON
+  6. Exit
+- ✨ **Loading animations** and pretty-formatted output
+- 🔄 **Automatic menu loop** after each operation
+- ✅ **Input validation** with helpful defaults
+
+No command-line arguments needed—just run and follow the prompts!
+
+### Option 2: Web API with Swagger UI
+
+For programmatic access or if you're building a frontend:
+
 ```powershell
 uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```
-Open `http://localhost:8000/docs` for Swagger UI.
 
-### Console-only CLI
-
-You can generate itineraries without running the server:
-
-```powershell
-python cli.py --city "Pittsburgh, PA" --user-address "Hamburg Hall, 4800 Forbes Ave, Pittsburgh, PA 15213" --max-distance-miles 5 --environment either
-```
-
-- Multiple options:
-```powershell
-python cli.py --options 3
-```
-
-- JSON output:
-```powershell
-python cli.py --json
-```
+Then open `http://localhost:8000/docs` for interactive Swagger UI.
 
 ## API (frontend usage)
 
@@ -111,6 +120,7 @@ curl -X POST "http://localhost:8000/api/itinerary" \
 ## Files (flat)
 
 ```
+cli.py                                # Interactive console UI (animated menu system)
 main.py                               # FastAPI app entry
 routes.py                             # API routes: /api/health, /api/itinerary, /api/itinerary/options, /api/food/search, /api/events/this-week
 config.py                             # Settings (.env supported) via pydantic BaseSettings
@@ -130,9 +140,11 @@ README.md                             # This documentation
 
 ## Notes for graders
 
+- **Quickest way to demo:** Just run `python cli.py` and explore the interactive menu! 🎨
 - The app runs without any API keys (reduced features; graceful fallbacks).
 - All code lives in the repo root for easy review.
 - Title, team, authors, summary, and AI disclaimer are included in each module header.
+- The console UI features ASCII art, loading animations, and a full menu-driven experience.
 
 
 
