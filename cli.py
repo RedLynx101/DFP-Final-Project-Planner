@@ -63,7 +63,7 @@ TURTLE_ART = r"""
 ║ ....................^~~~~^~~~~^................... ║
 ║ .................................................. ║
 ╚════════════════════════════════════════════════════╝
-              Purple Turtles Team 🐢
+                Purple Turtles Team 🐢
 """
 
 CREDITS = """
@@ -291,6 +291,147 @@ def print_food_results(food_data: dict[str, Any]) -> None:
 
 
 # ============================================================================
+# API KEY CHECKING
+# ============================================================================
+
+def check_api_keys_configured() -> dict[str, bool]:
+    """Check which API keys are configured (not default values)."""
+    settings = get_settings()
+    return {
+        "OpenAI": bool(settings.openai_api_key and not settings.openai_api_key.startswith("changeme")),
+        "Google Maps": bool(settings.maps_api_key and not settings.maps_api_key.startswith("changeme")),
+        "Weather": bool(settings.weather_api_key and not settings.weather_api_key.startswith("changeme")),
+        "Yelp": bool(settings.yelp_api_key and not settings.yelp_api_key.startswith("changeme")),
+        "Ticketmaster": bool(settings.ticketmaster_api_key and not settings.ticketmaster_api_key.startswith("changeme")),
+    }
+
+
+def get_api_status_summary() -> str:
+    """Get a summary of configured API keys."""
+    keys = check_api_keys_configured()
+    configured = sum(keys.values())
+    total = len(keys)
+    return f"   🔑 API Status: {configured}/{total} keys configured"
+
+
+def option_test_api_keys() -> None:
+    """Menu option: Test all API keys individually."""
+    clear_screen()
+    print_header("🔍 API KEY DIAGNOSTICS")
+    
+    print("\n   Testing all configured API keys...\n")
+    
+    settings = get_settings()
+    results = []
+    
+    # Test OpenAI
+    print("   🤖 Testing OpenAI API...")
+    if not settings.openai_api_key or settings.openai_api_key.startswith("changeme"):
+        results.append(("OpenAI", "⚠️  NOT CONFIGURED", "No API key set"))
+    else:
+        try:
+            from openai import OpenAI
+            client = OpenAI(api_key=settings.openai_api_key)
+            # Simple test call
+            resp = client.chat.completions.create(
+                model=settings.openai_model,
+                messages=[{"role": "user", "content": "test"}],
+                max_completion_tokens=5,
+            )
+            if resp.choices:
+                results.append(("OpenAI", "✅ WORKING", f"Model: {settings.openai_model}"))
+            else:
+                results.append(("OpenAI", "❌ FAILED", "No response from API"))
+        except Exception as e:
+            results.append(("OpenAI", "❌ FAILED", str(e)[:60]))
+    
+    # Test Google Maps
+    print("   🗺️  Testing Google Maps API...")
+    if not settings.maps_api_key or settings.maps_api_key.startswith("changeme"):
+        results.append(("Google Maps", "⚠️  NOT CONFIGURED", "No API key set"))
+    else:
+        try:
+            from maps_client import geocode_address
+            result = geocode_address("Pittsburgh, PA")
+            if result and result.get("lat") and result.get("lon"):
+                results.append(("Google Maps", "✅ WORKING", f"Geocoded to {result['lat']:.4f}, {result['lon']:.4f}"))
+            else:
+                results.append(("Google Maps", "❌ FAILED", "No coordinates returned"))
+        except Exception as e:
+            results.append(("Google Maps", "❌ FAILED", str(e)[:60]))
+    
+    # Test Weather API
+    print("   🌤️  Testing Weather API...")
+    if not settings.weather_api_key or settings.weather_api_key.startswith("changeme"):
+        results.append(("Weather", "⚠️  NOT CONFIGURED", "No API key set"))
+    else:
+        try:
+            from weather_client import fetch_forecast
+            forecast = fetch_forecast("Pittsburgh, PA")
+            if forecast.get("list"):
+                count = len(forecast["list"])
+                results.append(("Weather", "✅ WORKING", f"{count} forecast periods retrieved"))
+            else:
+                results.append(("Weather", "❌ FAILED", "No forecast data"))
+        except Exception as e:
+            results.append(("Weather", "❌ FAILED", str(e)[:60]))
+    
+    # Test Yelp API
+    print("   🍕 Testing Yelp API...")
+    if not settings.yelp_api_key or settings.yelp_api_key.startswith("changeme"):
+        results.append(("Yelp", "⚠️  NOT CONFIGURED", "No API key set"))
+    else:
+        try:
+            from yelp_client import search_food
+            result = search_food("pizza", "Pittsburgh, PA", limit=1)
+            if result.get("results"):
+                results.append(("Yelp", "✅ WORKING", f"{len(result['results'])} results found"))
+            else:
+                results.append(("Yelp", "❌ FAILED", "No results returned"))
+        except Exception as e:
+            results.append(("Yelp", "❌ FAILED", str(e)[:60]))
+    
+    # Test Ticketmaster API
+    print("   🎫 Testing Ticketmaster API...")
+    if not settings.ticketmaster_api_key or settings.ticketmaster_api_key.startswith("changeme"):
+        results.append(("Ticketmaster", "⚠️  NOT CONFIGURED", "No API key set"))
+    else:
+        try:
+            from ticketmaster_client import fetch_events_ticketmaster
+            from datetime import datetime, timedelta
+            start = datetime.now()
+            end = start + timedelta(days=7)
+            response = fetch_events_ticketmaster(lat=40.4406, lon=-79.9959, radius_miles=25, start=start, end=end, size=10)
+            event_list = response.get("events", [])
+            results.append(("Ticketmaster", "✅ WORKING", f"{len(event_list)} events found"))
+        except Exception as e:
+            results.append(("Ticketmaster", "❌ FAILED", str(e)[:60]))
+    
+    # Display results
+    print("\n")
+    print_separator()
+    print("║ API SERVICE         STATUS              DETAILS" + " " * 24 + "║")
+    print_separator()
+    
+    for service, status, details in results:
+        service_padded = service.ljust(18)
+        status_padded = status.ljust(18)
+        details_short = (details[:40] + "...") if len(details) > 40 else details
+        print(f"║ {service_padded}  {status_padded}  {details_short}")
+    
+    print_separator()
+    
+    # Summary
+    working = sum(1 for _, status, _ in results if "✅" in status)
+    configured = sum(1 for _, status, _ in results if "⚠️" not in status)
+    total = len(results)
+    
+    print(f"\n   📊 Summary: {working} working, {configured - working} configured but failing, {total - configured} not configured")
+    
+    input("\n\n   Press ENTER to return to main menu...")
+
+
+# ============================================================================
 # MENU OPTIONS
 # ============================================================================
 
@@ -461,7 +602,8 @@ MENU_OPTIONS = """
 ║   3️⃣   Search Food (Yelp)                                                 ║
 ║   4️⃣   View This Week's Events                                            ║
 ║   5️⃣   Build Itinerary & Export JSON                                      ║
-║   6️⃣   Exit                                                               ║
+║   6️⃣   Test API Keys (Diagnostics)                                        ║
+║   7️⃣   Exit                                                               ║
 ║                                                                          ║
 ╚══════════════════════════════════════════════════════════════════════════╝
 """
@@ -472,7 +614,9 @@ def show_menu() -> str:
     clear_screen()
     print(TITLE_ART)
     print(MENU_OPTIONS)
-    choice = input("   👉 Select an option (1-6): ").strip()
+    print(get_api_status_summary())
+    print()
+    choice = input("   👉 Select an option (1-7): ").strip()
     return choice
 
 
@@ -492,13 +636,15 @@ def main_loop() -> None:
         elif choice == "5":
             option_json_export()
         elif choice == "6":
+            option_test_api_keys()
+        elif choice == "7":
             clear_screen()
             print("\n")
             typewriter("   👋 Thanks for using Weekender! Have a great weekend in Pittsburgh! 🐢\n")
             print("\n")
             sys.exit(0)
         else:
-            print("\n   ❌ Invalid choice. Please select 1-6.")
+            print("\n   ❌ Invalid choice. Please select 1-7.")
             time.sleep(1.5)
 
 

@@ -142,7 +142,6 @@ async def classify_environment_batch(texts: Iterable[str]) -> List[str]:
     # Step 1: local heuristic for all
     heuristic_labels: List[str] = [classify_environment_heuristic(t) for t in items]
     needs_refinement_indexes: List[int] = [i for i, lab in enumerate(heuristic_labels) if lab == "unknown"]
-    print(f"[DEBUG] Heuristics complete: {len(needs_refinement_indexes)} items need OpenAI refinement")
     if not needs_refinement_indexes:
         return heuristic_labels
 
@@ -150,14 +149,11 @@ async def classify_environment_batch(texts: Iterable[str]) -> List[str]:
     settings = get_settings()
     key = settings.openai_api_key
     if not key or key.startswith("changeme"):
-        print("No OpenAI key configured, returning heuristic labels")
         return heuristic_labels
 
     try:
         from openai import AsyncOpenAI  # type: ignore
-        print(f"[DEBUG] OpenAI module imported successfully")
-    except Exception as e:
-        print(f"[DEBUG] Failed to import OpenAI: {e}")
+    except Exception:
         return heuristic_labels
 
     # IMPORTANT: Explicitly close the async client before the loop closes to
@@ -175,7 +171,6 @@ async def classify_environment_batch(texts: Iterable[str]) -> List[str]:
     async def classify_one(prompt_text: str) -> str:
         async with semaphore:
             try:
-                print(f"[DEBUG] Calling OpenAI for classification...")
                 resp = await client.chat.completions.create(
                     model=settings.openai_model,
                     messages=[
@@ -197,12 +192,9 @@ async def classify_environment_batch(texts: Iterable[str]) -> List[str]:
                 )
                 content = (resp.choices[0].message.content or "").strip().lower()
                 if content in {"indoor", "outdoor"}:
-                    print(f"[DEBUG] OpenAI classified as: {content}")
                     return content
-                print(f"[DEBUG] OpenAI returned invalid content: {content}")
                 return "unknown"
-            except Exception as e:
-                print(f"[DEBUG] OpenAI API call failed: {e}")
+            except Exception:
                 return "unknown"
 
     # Launch tasks for unique prompts
