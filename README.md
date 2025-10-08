@@ -1,6 +1,6 @@
 # Weekender: Pittsburgh Plan‑o‑matic
 
-Purple Turtles — Gwen Li, Aadya Agarwal, Emma Peng, Noah Hicks
+Purple Turtles — Gwen Li (wendyl2), Aadya Agarwal (aadyaaga), Emma Peng (aadyaaga), Noah Hicks (nhicks)
 
 Date: 2025-09-11
 
