@@ -8,9 +8,12 @@ Disclaimer: This file includes AI-assisted content (GPT-5); reviewed and approve
 Test Script: python -c "from src.services.visitpgh_scraper import fetch_this_week_events; import json; d=fetch_this_week_events(); print('events:', len(d.get('events', []))); print(json.dumps(d.get('events', [])[:5], indent=2))"
 """
 
+import pytest
+
 from src.services.visitpgh_scraper import fetch_this_week_events
 
 
+@pytest.mark.external
 def test_visitpgh_scraper_print_results():
     """
     Integration test for the VisitPittsburgh scraper with explicit error handling.

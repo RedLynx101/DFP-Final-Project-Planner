@@ -298,14 +298,14 @@ def _collect_candidates(
         candidates = keep
 
     if not any(c.get("category") == "event" for c in candidates):
-    candidates.append({
-        "title": "Explore Point State Park",
-        "category": "event",
-        "type": "outdoor",
-        "notes": "Fallback: Ticketmaster and VisitPgh unavailable.",
-        "source": "fallback",
-        "environment": "outdoor"
-    })
+        candidates.append({
+            "title": "Explore Point State Park",
+            "category": "event",
+            "type": "outdoor",
+            "notes": "Fallback: Ticketmaster and VisitPgh unavailable.",
+            "source": "fallback",
+            "environment": "outdoor"
+        })
 
     return candidates, warnings, sources
 

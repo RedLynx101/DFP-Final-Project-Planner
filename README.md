@@ -1,12 +1,24 @@
 # Weekender: Pittsburgh Plan‑o‑matic
 
-Purple Turtles — Gwen Li (wendyl2), Aadya Agarwal (aadyaaga), Emma Peng (aadyaaga), Noah Hicks (nhicks)
+Purple Turtles — Gwen Li, Aadya Agarwal, Emma Peng, Noah Hicks
 
 Date: 2025-09-11
 
 Summary: FastAPI backend that generates Pittsburgh weekend itineraries. It pulls event highlights from VisitPittsburgh (scraper) and Ticketmaster (API), food options from Yelp (if API key provided), and weather from OpenWeather (if API key provided). It can consider a user's address, compute distances/times, filter by max distance, and sequence activities by proximity. If external services are unavailable, it falls back gracefully.
 
 Disclaimer: This repository includes AI-assisted content (GPT-5); reviewed and approved by the Purple Turtles team.
+
+Public demo: https://dfp-final-project-planner.replit.app/
+
+This is a four-person CMU team project, not a solo build. The public history records substantial work
+under Noah's GitHub and Replit identities across integrations, tests, and deployment iterations while
+also preserving the team's commits and attribution.
+
+The location field is operational data, not just interface copy. Depending on configuration, an address
+may be sent to Google Maps, while itinerary inputs and place descriptions may also reach the enabled
+events, food, weather, and OpenAI services. Use a neighborhood or public landmark for the demo rather
+than a private home address. The repository has no general reuse license and should be treated as a
+publicly viewable academic artifact.
 
 ## Quickstart
 
